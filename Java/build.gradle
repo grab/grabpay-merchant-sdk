@@ -1,0 +1,168 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'signing'
+    id("co.uzzu.dotenv.gradle") version "1.1.0"
+}
+
+sourceCompatibility = 8
+targetCompatibility = 8
+
+
+group 'com.grab.grabpay.merchantintegration'
+archivesBaseName = "SDK"
+version '2.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // https://mvnrepository.com/artifact/commons-codec/commons-codec
+    implementation group: 'commons-codec', name: 'commons-codec', version: '1.5'
+
+    api 'org.json:json:20210307'
+
+    // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore
+    implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.3.3'
+    implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.1'
+
+    // https://mvnrepository.com/artifact/org.jetbrains/annotations
+    implementation group: 'org.jetbrains', name: 'annotations', version: '13.0'
+
+
+    // https://mvnrepository.com/artifact/org.slf4j/slf4j-jdk14
+    // for warning SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+    implementation group: 'org.slf4j', name: 'slf4j-jdk14', version: '2.0.0-alpha1'
+
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-text
+    implementation group: 'org.apache.commons', name: 'commons-text', version: '1.9'
+
+    testImplementation('org.junit.jupiter:junit-jupiter:5.8.1')
+    // https://mvnrepository.com/artifact/org.mockito/mockito-core
+    testImplementation 'org.mockito:mockito-inline:4.0.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:4.0.0'
+    testImplementation 'org.mockito:mockito-core:4.0.0'
+    testImplementation 'org.hamcrest:hamcrest:2.2'
+
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testImplementation "org.powermock:powermock-module-junit4:1.6.4"
+    // https://mvnrepository.com/artifact/org.powermock/powermock-api-mockito2
+    testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: '2.0.2'
+}
+
+test {
+    useJUnitPlatform()
+    environment = env.allVariables
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+
+publishing {
+    publications {
+        // Specify relocation POM
+        mavenJava(MavenPublication) {
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+
+            pom {
+                groupId = 'com.grab.grabpay.merchantintegration'
+                artifactId = 'grabpay-mexint-java-sdk'
+                name = 'GP-MexInt-SDK'
+                version = '2.0.0'
+                description = 'Merchant Integration SDK in Java'
+                url = 'https://github.com/grab/grabpay-merchant-sdk'
+
+                licenses {
+                }
+
+                developers {
+                    developer {
+                        id = 'grab'
+                        name = 'GrabTaxi Holdings Pte Ltd'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/grab/grabpay-merchant-sdk.git'
+                    developerConnection = 'scm:git:ssh://git@github.com/grab/grabpay-merchant-sdk.git'
+                    url = 'https://github.com/grab/grabpay-merchant-sdk'
+                }
+
+
+                dependencies {
+                    // https://mvnrepository.com/artifact/commons-codec/commons-codec
+                    implementation group: 'commons-codec', name: 'commons-codec', version: '1.5'
+
+                    api 'org.json:json:20210307'
+
+                    // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore
+                    implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.3.3'
+                    implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.1'
+
+                    // https://mvnrepository.com/artifact/org.jetbrains/annotations
+                    implementation group: 'org.jetbrains', name: 'annotations', version: '13.0'
+
+
+                    // https://mvnrepository.com/artifact/org.slf4j/slf4j-jdk14
+                    // for warning SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+                    implementation group: 'org.slf4j', name: 'slf4j-jdk14', version: '2.0.0-alpha1'
+
+                    // https://mvnrepository.com/artifact/org.apache.commons/commons-text
+                    implementation group: 'org.apache.commons', name: 'commons-text', version: '1.9'
+
+                    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+                    compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.0'
+                    compileOnly group: 'jakarta.json.bind', name: 'jakarta.json.bind-api', version: '2.0.0'
+                    testImplementation group: 'org.eclipse', name: 'yasson', version: '2.0.2'
+                }
+            }
+        }
+    }
+
+   repositories {
+       maven {
+           def releasesRepoUrl = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+           def snapshotsRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+           url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+           credentials {
+               username = project.property("nexusUsername")
+               password = project.property("nexusPassword")
+           }
+       }
+   }
+   
+}
+
+
+signing {
+    // check
+    useGpgCmd()
+    // sign publishing.publications.mavenJava
+}
+
+tasks.withType(Javadoc) {
+    failOnError false
+    options.addStringOption('Xdoclint:none', '-quiet')
+    options.addStringOption('encoding', 'UTF-8')
+    options.addStringOption('charSet', 'UTF-8')
+}
+
+javadoc {
+}
+
+wrapper {
+    gradleVersion = '7.4'
+}

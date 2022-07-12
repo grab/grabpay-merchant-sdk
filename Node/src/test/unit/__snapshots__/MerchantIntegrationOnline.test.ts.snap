@@ -1,0 +1,179 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MerchantIntegrationOnline chargeComplete 1`] = `
+Array [
+  Array [
+    Object {
+      "data": "{\\"partnerTxID\\":\\"rrSwr3vetp9pRONvRsL0cOK6SzFTKU3d\\"}",
+      "headers": Object {
+        "Accept": "application/json",
+        "Authorization": "Bearer testing",
+        "Content-Type": "application/json",
+        "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
+        "X-GID-AUX-POP": "eyJzaWciOiJ2WWdpaEI5UE4zc0VQckxnV1FXUkV3c2JFTENRZmV6bndNODBuRGNhSWlZIiwidGltZV9zaW5jZV9lcG9jaCI6MH0",
+        "X-Sdk-Country": "VN",
+        "X-Sdk-Language": "nodejs",
+        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
+        "X-Sdk-Version": "2.0.0",
+      },
+      "method": "POST",
+      "url": "/mocapay/partner/v2/charge/complete",
+    },
+  ],
+]
+`;
+
+exports[`MerchantIntegrationOnline chargeInit happy path 1`] = `
+Array [
+  Array [
+    Object {
+      "data": "{\\"partnerTxID\\":\\"rrSwr3vetp9pRONvRsL0cOK6SzFTKU3d\\",\\"partnerGroupTxID\\":\\"18csg3DVcCQH9vsA0s2G3zz4CAWE13vi\\",\\"amount\\":100000,\\"currency\\":\\"VND\\",\\"description\\":\\"testing otc\\",\\"metaInfo\\":{\\"brandName\\":\\"Store1\\"},\\"merchantID\\":\\"merchant-id\\"}",
+      "headers": Object {
+        "Authorization": "partner-id:PvXQnhoUA0JB0zBc7cd8Ci4hiEH/XBVPc++ZhmOL+PE=",
+        "Content-Type": "application/json",
+        "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
+        "X-Sdk-Country": "VN",
+        "X-Sdk-Language": "nodejs",
+        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
+        "X-Sdk-Version": "2.0.0",
+      },
+      "method": "POST",
+      "url": "/mocapay/partner/v2/charge/init",
+    },
+  ],
+]
+`;
+
+exports[`MerchantIntegrationOnline chargeInit hiding postpaid method 1`] = `
+Array [
+  Array [
+    Object {
+      "data": "{\\"partnerTxID\\":\\"rrSwr3vetp9pRONvRsL0cOK6SzFTKU3d\\",\\"partnerGroupTxID\\":\\"18csg3DVcCQH9vsA0s2G3zz4CAWE13vi\\",\\"amount\\":100000,\\"currency\\":\\"VND\\",\\"description\\":\\"testing otc\\",\\"hidePaymentMethods\\":[\\"POSTPAID\\"],\\"merchantID\\":\\"merchant-id\\"}",
+      "headers": Object {
+        "Authorization": "partner-id:gRYBkFXgq6VZwbY0uD2gBKvAgpxYiaLjC2MKKrG2e5w=",
+        "Content-Type": "application/json",
+        "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
+        "X-Sdk-Country": "VN",
+        "X-Sdk-Language": "nodejs",
+        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
+        "X-Sdk-Version": "2.0.0",
+      },
+      "method": "POST",
+      "url": "/mocapay/partner/v2/charge/init",
+    },
+  ],
+]
+`;
+
+exports[`MerchantIntegrationOnline generateWebUrl 1`] = `
+Array [
+  Array [
+    Object {
+      "data": "{\\"partnerTxID\\":\\"rrSwr3vetp9pRONvRsL0cOK6SzFTKU3d\\",\\"partnerGroupTxID\\":\\"18csg3DVcCQH9vsA0s2G3zz4CAWE13vi\\",\\"amount\\":100000,\\"currency\\":\\"VND\\",\\"description\\":\\"testing otc\\",\\"metaInfo\\":{\\"brandName\\":\\"Store1\\"},\\"merchantID\\":\\"merchant-id\\"}",
+      "headers": Object {
+        "Authorization": "partner-id:PvXQnhoUA0JB0zBc7cd8Ci4hiEH/XBVPc++ZhmOL+PE=",
+        "Content-Type": "application/json",
+        "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
+        "X-Sdk-Country": "VN",
+        "X-Sdk-Language": "nodejs",
+        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
+        "X-Sdk-Version": "2.0.0",
+      },
+      "method": "POST",
+      "url": "/mocapay/partner/v2/charge/init",
+    },
+  ],
+]
+`;
+
+exports[`MerchantIntegrationOnline generateWebUrl 2`] = `"https://stg-paysi.moca.vn/grabid/v1/oauth2/authorize?acr_values=consent_ctx%3AcountryCode%3DVN%2Ccurrency%3DVND&client_id=client-id&code_challenge=bKE9UspwyIPg8LsQHkJaiehiTeUdstI5JZOvaoQRgJA&code_challenge_method=S256&nonce=randomNonce&redirect_uri=http%3A%2F%2Flocalhost%3A8888%2Fresult&request=token&response_type=code&scope=payment.vn.one_time_charge&state=someSta"`;
+
+exports[`MerchantIntegrationOnline getChargeStatus 1`] = `
+Array [
+  Array [
+    Object {
+      "headers": Object {
+        "Accept": "application/json",
+        "Authorization": "Bearer testing",
+        "Content-Type": "application/json",
+        "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
+        "X-GID-AUX-POP": "eyJzaWciOiJ2WWdpaEI5UE4zc0VQckxnV1FXUkV3c2JFTENRZmV6bndNODBuRGNhSWlZIiwidGltZV9zaW5jZV9lcG9jaCI6MH0",
+        "X-Sdk-Country": "VN",
+        "X-Sdk-Language": "nodejs",
+        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
+        "X-Sdk-Version": "2.0.0",
+      },
+      "method": "GET",
+      "params": Object {
+        "currency": "VND",
+      },
+      "url": "/moca/partner/v2/charge/rrSwr3vetp9pRONvRsL0cOK6SzFTKU3d/status",
+    },
+  ],
+]
+`;
+
+exports[`MerchantIntegrationOnline getOtcStatus 1`] = `
+Array [
+  Array [
+    Object {
+      "headers": Object {
+        "Authorization": "partner-id:fbbC6OTohQOiiNGCn3qcJmrA9o0esi7jMdi0Hrf43P0=",
+        "Content-Type": "application/json",
+        "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
+        "X-Sdk-Country": "VN",
+        "X-Sdk-Language": "nodejs",
+        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
+        "X-Sdk-Version": "2.0.0",
+      },
+      "method": "GET",
+      "params": Object {
+        "currency": "VND",
+      },
+      "url": "/mocapay/partner/v2/one-time-charge/rrSwr3vetp9pRONvRsL0cOK6SzFTKU3d/status",
+    },
+  ],
+]
+`;
+
+exports[`MerchantIntegrationOnline oauth2Token 1`] = `
+Array [
+  Array [
+    Object {
+      "data": "{\\"grant_type\\":\\"authorization_code\\",\\"client_id\\":\\"client-id\\",\\"client_secret\\":\\"client-secret\\",\\"code_verifier\\":\\"abc123\\",\\"redirect_uri\\":\\"http://localhost:8888/result\\",\\"code\\":\\"testing\\"}",
+      "headers": Object {
+        "Content-Type": "application/json",
+        "X-Sdk-Country": "VN",
+        "X-Sdk-Language": "nodejs",
+        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
+        "X-Sdk-Version": "2.0.0",
+      },
+      "method": "POST",
+      "url": "/grabid/v1/oauth2/token",
+    },
+  ],
+]
+`;
+
+exports[`MerchantIntegrationOnline refund 1`] = `
+Array [
+  Array [
+    Object {
+      "data": "{\\"partnerTxID\\":\\"rrSwr3vetp9pRONvRsL0cOK6SzFTKU3d\\",\\"partnerGroupTxID\\":\\"18csg3DVcCQH9vsA0s2G3zz4CAWE13vi\\",\\"amount\\":100000,\\"currency\\":\\"VND\\",\\"description\\":\\"test\\",\\"originTxID\\":\\"34234\\",\\"merchantID\\":\\"merchant-id\\"}",
+      "headers": Object {
+        "Accept": "application/json",
+        "Authorization": "Bearer token",
+        "Content-Type": "application/json",
+        "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
+        "X-GID-AUX-POP": "eyJzaWciOiJIZG5DcHFubDc5bWVWMmtQbWFLNTNHSEkwRFFmWW1DSU5LVGlnc1dzZ0VnIiwidGltZV9zaW5jZV9lcG9jaCI6MH0",
+        "X-Sdk-Country": "VN",
+        "X-Sdk-Language": "nodejs",
+        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
+        "X-Sdk-Version": "2.0.0",
+      },
+      "method": "POST",
+      "url": "/mocapay/partner/v2/refund",
+    },
+  ],
+]
+`;

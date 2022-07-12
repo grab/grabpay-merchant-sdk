@@ -1,0 +1,28 @@
+
+# Created by https://www.toptal.com/developers/gitignore/api/phpunit
+# Edit at https://www.toptal.com/developers/gitignore?templates=phpunit
+
+### PHPUnit ###
+# Covers PHPUnit
+# Reference: https://phpunit.de/
+
+# Generated files
+.phpunit.result.cache
+.phpunit.cache
+.php-cs-fixer.cache
+coverage
+
+# PHPUnit
+/app/phpunit.xml
+/phpunit.xml
+
+# Build data
+/build/
+
+# Vendor
+/vendor/
+
+# examples
+/examples/config.php
+
+# End of https://www.toptal.com/developers/gitignore/api/phpunit

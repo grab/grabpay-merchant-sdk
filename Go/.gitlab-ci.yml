@@ -1,0 +1,32 @@
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+stages:
+  - build 
+  - test
+
+.job-defaults:
+  image: $CONTAINER_IMAGE
+  before_script:
+    - cd Go
+    - set -a; source $STG_INTEGRATION_KEYS; set +a
+  parallel:
+    matrix:
+      - CONTAINER_IMAGE:
+        - golang:1.18
+        - golang:1.17
+      
+build_Go:
+  extends: .job-defaults
+  stage: build
+  script:
+    - go build ./...
+
+test_Go:
+  extends: .job-defaults
+  stage: test
+  script:
+    - go test --cover ./...
+

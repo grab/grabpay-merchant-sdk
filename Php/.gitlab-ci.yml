@@ -1,0 +1,45 @@
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+stages:
+  - build
+  - test
+
+.job-defaults:
+  cache:
+    key: php-$CI_COMMIT_REF_SLUG
+    paths:
+      - Php/vendor/
+    policy: pull
+  before_script:
+    - cd Php
+    - set -a; source $STG_INTEGRATION_KEYS; set +a
+
+build_Php:
+  extends: .job-defaults
+  stage: build
+  image: composer:latest
+  cache:
+    policy: pull-push
+  script:
+    - composer config -g cache-dir "$(pwd)/vendor"
+    - composer install 
+
+# When running unit test, we should not depend on the PHP version that
+# has been configured inside `composer:latest` image. Instead
+# we should target the PHP versions we want using the `php:*` images
+test_Php:
+  extends: .job-defaults
+  stage: test
+  image: $CONTAINER_IMAGE
+  script:
+    - ./vendor/bin/phpunit tests
+  parallel:
+    matrix:
+      - CONTAINER_IMAGE: 
+        - php:7.4-alpine 
+        - php:8.0-alpine
+        - php:8.1-alpine
+

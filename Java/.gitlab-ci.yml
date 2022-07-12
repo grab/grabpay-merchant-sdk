@@ -1,0 +1,21 @@
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+image: gradle:jdk8
+
+stages:
+  - build
+
+build_Java:
+  stage: build
+  before_script:
+    - set -a; source $STG_INTEGRATION_KEYS; set +a
+    - cd Java
+    - touch gradle.properties
+    - cat "$GRADLE_PROPERTIES" > ./gradle.properties
+  script:
+    - gradle build --stacktrace
+
+

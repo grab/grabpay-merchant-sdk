@@ -1,0 +1,30 @@
+{
+  "source": {
+    "include": [
+        "./src/index.js",
+        "./README.md"
+    ]
+  },
+  "opts": {
+    "encoding": "utf8",
+    "destination": "./docs",
+    "template": "node_modules/docdash",
+    "recurse": true,
+    "verbose": true
+  },
+  "plugins": [
+    "plugins/markdown"
+  ],
+  "templates": {
+      "cleverLinks": false,
+      "monospaceLinks": false,
+      "default": {
+          "outputSourceFiles": true,
+          "includeDate": false
+      }
+  },
+  "docdash": {
+      "static": false,
+      "sort": true
+  }
+}

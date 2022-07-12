@@ -1,0 +1,67 @@
+stages:
+  - test
+
+.trigger_sdk_test:
+  stage: test
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+      changes:
+        - ${SDK_LANG}/**/*
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+sast_scan:
+  stage: test
+  trigger:
+    include:
+      - project: 'gfg/moca/cicd-pipelines'
+        ref: 'master'
+        file: 'sast.main.pipeline.yml'
+    strategy: depend
+
+java:
+  extends: .trigger_sdk_test
+  trigger:
+    include: Java/.gitlab-ci.yml
+    strategy: depend
+  variables:
+    SDK_LANG: Java
+
+python:
+  extends: .trigger_sdk_test
+  trigger:
+    include: Python/.gitlab-ci.yml
+    strategy: depend
+  variables:
+    SDK_LANG: Python
+
+php:
+  extends: .trigger_sdk_test
+  trigger:
+    include: Php/.gitlab-ci.yml
+    strategy: depend
+  variables:
+    SDK_LANG: Php
+
+node:
+  extends: .trigger_sdk_test
+  trigger:
+    include: Node/.gitlab-ci.yml
+    strategy: depend
+  variables:
+    SDK_LANG: Node
+
+net:
+  extends: .trigger_sdk_test
+  trigger:
+    include: Net/.gitlab-ci.yml
+    strategy: depend
+  variables:
+    SDK_LANG: Net
+
+go:
+  extends: .trigger_sdk_test
+  trigger:
+    include: Go/.gitlab-ci.yml
+    strategy: depend
+  variables:
+    SDK_LANG: Go

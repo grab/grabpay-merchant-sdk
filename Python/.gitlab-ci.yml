@@ -1,0 +1,28 @@
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+stages:
+  - test
+
+.job-defaults:
+  image: $CONTAINER_IMAGE
+  before_script:
+    - cd Python
+    - set -a; source $STG_INTEGRATION_KEYS; set +a
+  parallel:
+    matrix:
+      - CONTAINER_IMAGE: 
+        - python:3.6-alpine
+        - python:3.7-alpine
+        - python:3.8-alpine
+        - python:3.9-alpine
+
+test:
+  extends: .job-defaults
+  stage: test
+  script:
+    - cd src
+    - python3 -m unittest discover
+

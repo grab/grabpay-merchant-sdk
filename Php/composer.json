@@ -1,0 +1,39 @@
+{
+  "name": "grab/grabpay-merchant-sdk",
+  "description": "GrabPay Merchant Integration SDK for PHP",
+  "type": "library",
+  "homepage": "https://developer.grab.com/",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "GrabTaxi Holdings Pte Ltd"
+    }
+  ],
+  "minimum-stability": "stable",
+  "autoload": {
+    "psr-4": {
+      "GrabPay\\Merchant\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "GrabPay\\Merchant\\Tests\\": "tests/"
+    }
+  },
+  "require": {
+    "php": "^7.4 || ^8.0",
+    "mashape/unirest-php": "^3.0"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.8",
+    "phpunit/phpunit": "^9.5"
+  },
+  "scripts": {
+    "lint": [
+      "./vendor/bin/php-cs-fixer fix"
+    ],
+    "test": [
+      "./vendor/phpunit/phpunit/phpunit tests"
+    ]
+  }
+}

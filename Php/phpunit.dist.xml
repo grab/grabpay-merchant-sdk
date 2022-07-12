@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd" bootstrap="vendor/autoload.php" colors="true" verbose="true" columns="max">
+    <testsuites>
+        <testsuite name="Merchant Integration Test Suite">
+            <directory suffix=".php">tests</directory>
+        </testsuite>
+    </testsuites>
+    <coverage includeUncoveredFiles="false" processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+        <report>
+            <html outputDirectory="coverage" lowUpperBound="50" highLowerBound="90"/>
+            <text outputFile="php://stdout" showUncoveredFiles="false" showOnlySummary="false"/>
+        </report>
+    </coverage>
+    <php>
+        <!-- Online: One-Time Charge (OTC) -->
+        <env name="SG_STG_OTC_PARTNER_ID" value=""/>
+        <env name="SG_STG_OTC_PARTNER_SECRET" value=""/>
+        <env name="SG_STG_OTC_MERCHANT_ID" value=""/>
+        <env name="SG_STG_OTC_CLIENT_ID" value=""/>
+        <env name="SG_STG_OTC_CLIENT_SECRET" value=""/>
+        <!-- Offline: Consumer Present QR (CPQR) -->
+        <env name="SG_STG_POS_PARTNER_ID" value=""/>
+        <env name="SG_STG_POS_PARTNER_SECRET" value=""/>
+        <env name="SG_STG_POS_MERCHANT_ID" value=""/>
+        <env name="SG_STG_POS_TERMINAL_ID" value=""/>
+        <!-- Online: One-Time Charge (OTC) -->
+        <env name="VN_STG_OTC_PARTNER_ID" value=""/>
+        <env name="VN_STG_OTC_PARTNER_SECRET" value=""/>
+        <env name="VN_STG_OTC_MERCHANT_ID" value=""/>
+        <env name="VN_STG_OTC_CLIENT_ID" value=""/>
+        <env name="VN_STG_OTC_CLIENT_SECRET" value=""/>
+        <!-- Offline: Merchant Present QR (MPQR) -->
+        <env name="VN_STG_POS_PARTNER_ID" value=""/>
+        <env name="VN_STG_POS_PARTNER_SECRET" value=""/>
+        <env name="VN_STG_POS_MERCHANT_ID" value=""/>
+        <env name="VN_STG_POS_TERMINAL_ID" value=""/>
+    </php>
+</phpunit>

@@ -1,0 +1,39 @@
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_ID
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+image: bitnami/dotnet-sdk:5
+
+stages:
+  - build
+  - test
+
+.job-defaults:
+  cache:
+    key: net-$CI_COMMIT_REF_SLUG
+    paths:
+      - Net/src/bin
+      - Net/src/obj 
+    policy: pull
+  before_script:
+    - cd Net
+    - set -a; source $STG_INTEGRATION_KEYS; set +a
+
+build_Net:
+  extends: .job-defaults
+  stage: build
+  cache:
+    policy: pull-push
+  script:
+    - dotnet build Net.sln  
+
+test_Net:
+  extends: .job-defaults
+  stage: test
+  before_script:
+    - cd Net/test
+    - set -a; source $STG_INTEGRATION_KEYS; set +a
+  script:
+    - dotnet test 
+
