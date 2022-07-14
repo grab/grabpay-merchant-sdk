@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use GrabPay\Merchant\MerchantIntegrationOnline;
+use GrabPay\Merchant\Models\Online\ChargeInitParams;
+use GrabPay\Merchant\Models\Online\GenerateWebUrlParams;
 
 // Requires
 include_once '../config.php';
@@ -16,7 +18,7 @@ session_start();
 $redirectUrl = 'http://localhost:8080/examples/online/otc_complete.php';
 
 // Amount to charge
-$amount = 168;
+$amount = 10;
 
 // Description of the charge
 $description = 'Test OTC Payment';
@@ -30,10 +32,22 @@ $_SESSION['partnerGroupTxID'] = MerchantIntegrationOnline::generateRandomString(
 $_SESSION['codeVerifier'] = $merchantIntegrationOnline->generateRandomString(128);
 
 // Init charge
-$onaChargeInit = $merchantIntegrationOnline->onaChargeInit($_SESSION['partnerTxID'], $_SESSION['partnerGroupTxID'], $amount, MerchantIntegrationOnline::SGD, $description);
+$chargeInitParams = new ChargeInitParams([
+    'partnerTxID'      => $_SESSION['partnerTxID'],
+    'partnerGroupTxID' => $_SESSION['partnerGroupTxID'],
+    'amount'           => $amount,
+    'currency'         => MerchantIntegrationOnline::SGD,
+    'description'      => $description,
+]);
+$chargeInit = $merchantIntegrationOnline->chargeInit($chargeInitParams);
 
 // Get OAuth authorize url
-$onaCreateWebUrl = $merchantIntegrationOnline->onaCreateWebUrl(MerchantIntegrationOnline::SGD, $_SESSION['codeVerifier'], $onaChargeInit->getBody()->request);
+$generateWebUrlParams = new GenerateWebUrlParams([
+    'currency'     => MerchantIntegrationOnline::SGD,
+    'codeVerifier' => $_SESSION['codeVerifier'],
+    'request'      => $chargeInit->data->request,
+]);
+$generateWebUrl = $merchantIntegrationOnline->generateWebUrl($generateWebUrlParams);
 ?>
 <!doctype html>
 <html lang="en">
@@ -46,12 +60,12 @@ $onaCreateWebUrl = $merchantIntegrationOnline->onaCreateWebUrl(MerchantIntegrati
         <pre><?php print_r($_SESSION['partnerTxID']); ?></pre>
         <p>partnerGroupTxID</p>
         <pre><?php print_r($_SESSION['partnerGroupTxID']); ?></pre>
-        <p>onaChargeInit</p>
-        <pre><?php print_r($onaChargeInit->getBody()); ?></pre>
-        <p>onaCreateWebUrl</p>
-        <pre><?php print_r($onaCreateWebUrl); ?></pre>
-        <?php if (! empty($onaCreateWebUrl)) { ?>
-            <p><a href="<?php echo $onaCreateWebUrl; ?>">Click here to complete OTC charge</a></p>
+        <p>chargeInit</p>
+        <pre><?php print_r($chargeInit->data); ?></pre>
+        <p>generateWebUrl</p>
+        <pre><?php print_r($generateWebUrl); ?></pre>
+        <?php if (! empty($generateWebUrl)) { ?>
+            <p><a href="<?php echo $generateWebUrl; ?>">Click here to complete OTC charge</a></p>
         <?php } ?>
     </body>
 </html>

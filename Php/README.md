@@ -55,96 +55,96 @@ $merchantIntegrationOnline = new MerchantIntegrationOnline($environment, $countr
 #### Initialise the charge
 
 ```php
-/**
- * @param string $partnerTxID Partner transaction ID
- * @param string $partnerGroupTxID Partner order ID
- * @param int $amount Transaction amount as integer
- * @param string $currency Currency for the transaction
- * @param string $description Description of the charge
- * @param array $metaInfo Meta information regarding the transaction
- * @param array $items Items within the transaction
- * @param array $shippingDetails Shipping details for the transaction
- * @param array $hidePaymentMethods Payment method to hide for the transaction
- */
-$response = $merchantIntegrationOnline->onaChargeInit($partnerTxID, $partnerGroupTxID, $amount, $currency, $description, $metaInfo, $items, $shippingDetails, $hidePaymentMethods);
+$params = new ChargeInitParams([
+    'amount'             => int, //  Transaction amount as integer
+    'currency'           => 'string', // Currency for the transaction
+    'description'        => 'string', // Description of the charge
+    'hidePaymentMethods' => array, // Payment method to hide for the transaction
+    'items'              => array, // Items within the transaction
+    'metaInfo'           => array, // Meta information regarding the transaction
+    'partnerGroupTxID'   => 'string', // Partner order ID
+    'partnerTxID'        => 'string', // Partner transaction ID
+    'shippingDetails'    => array, // Shipping details for the transaction
+]);
+$response = $merchantIntegrationOnline->chargeInit($params);
 ```
 
 #### Generate web URL for authentication
 
 ```php
-/**
- * @param string $currency Currency for the transaction
- * @param string $codeVerifier Code verifier
- * @param string $requestToken Request token
- */
-$response = $merchantIntegrationOnline->onaCreateWebUrl($currency, $codeVerifier, $requestToken);
+$params = new GenerateWebUrlParams([
+    'codeVerifier' => 'string', // Code verifier
+    'currency'     => 'string', // Currency for the transaction
+    'request'      => 'string', // Request token
+]);
+$response = $merchantIntegrationOnline->generateWebUrl($params);
 ```
 
 #### Get oauth2 access token
 
 ```php
-/**
- * @param string $code Code
- * @param string $codeVerifier Code verifier
- */
-$response = $merchantIntegrationOnline->($code, $codeVerifier);
+$params = new Oauth2TokenParams([
+    'code'         => 'string', // Code
+    'codeVerifier' => 'string', // Code verifier
+]);
+$response = $merchantIntegrationOnline->oauth2Token($params);
 ```
 
 #### Complete the charge
 
 ```php
-/**
- * @param string $partnerTxID Partner transaction ID
- * @param string $accessToken Access token
- */
-$response = $merchantIntegrationOnline->onaChargeComplete($partnerTxID, $accessToken);
+$params = new ChargeCompleteParams([
+    'accessToken' => 'string', // Access token
+    'partnerTxID' => 'string', // Partner transaction ID
+]);
+$response = $merchantIntegrationOnline->chargeComplete($params);
 ```
 
 #### Get status of the transaction
 
 ```php
-/**
- * @param string $partnerTxID Partner transaction ID
- * @param string $currency Currency for the transaction
- * @param string $accessToken Access token
- */
-$response = $merchantIntegrationOnline-> onaGetChargeStatus($partnerTxID, $currency, $accessToken);
-```
-
-#### Refund transaction that has been charged
-
-```php
-/**
- * @param string $refundPartnerTxID Partner transaction ID to refund
- * @param string $partnerGroupTxID Partner order ID
- * @param int $amount Transaction amount as integer
- * @param string $currency Currency for the transaction
- * @param string $txID Transaction ID
- * @param string $description Description of the refund
- * @param string $accessToken Access token
- */
-$response = $merchantIntegrationOnline->onaRefund($refundPartnerTxID, $partnerGroupTxID, $amount, $currency, $txID, $description, $accessToken);
-```
-
-#### Get status of the refunded transaction
-
-```php
-/**
- * @param string $refundPartnerTxID Partner transaction ID to refund
- * @param string $currency Currency for the transaction
- * @param string $accessToken Access token
- */
-$response = $merchantIntegrationOnline->onaGetRefundStatus($refundPartnerTxID, $currency, $accessToken);
+$params = new GetChargeStatusParams([
+    'accessToken' => 'string', // Access token
+    'currency'    => 'string', // Currency for the transaction
+    'partnerTxID' => 'string', // Partner transaction ID
+]);
+$response = $merchantIntegrationOnline->getChargeStatus($params);
 ```
 
 #### Get the status of the transaction without the need of an oauth access token
 
 ```php
-/**
- * @param string $partnerTxID Partner transaction ID
- * @param string $currency Currency for the transaction
- */
-$response = $merchantIntegrationOnline->onaGetOTCStatus($partnerTxID, $currency);
+$params = new GetOtcStatusParams([
+    'currency'    => 'string', // Currency for the transaction
+    'partnerTxID' => 'string', // Partner transaction ID
+]);
+$response = $merchantIntegrationOnline->getOtcStatus($params);
+```
+
+#### Refund transaction that has been charged
+
+```php
+$params = new RefundParams([
+    'accessToken'      => 'string', // Access token
+    'amount'           => int, // Refunded amount as integer
+    'currency'         => 'string', // Currency for the transaction
+    'description'      => 'string', // Description of the refund
+    'originTxID'       => 'string', // GrabPay original Transaction ID
+    'partnerGroupTxID' => 'string', // Partner order ID
+    'partnerTxID'      => 'string', // Partner transaction ID to refund
+]);
+$response = $merchantIntegrationOnline->refund($params);
+```
+
+#### Get status of the refunded transaction
+
+```php
+$params = new GetRefundStatusParams([
+    'accessToken' => 'string', // Access token
+    'currency'    => 'string', // Currency for the refunded transaction
+    'partnerTxID' => 'string', // Partner transaction ID to refund
+]);
+$response = $merchantIntegrationOnline->getRefundStatus($params)
 ```
 
 ### Tokenization API
@@ -174,75 +174,73 @@ $merchantIntegrationOffline = new MerchantIntegrationOffline($environment, $coun
 #### Create MPQR code
 
 ```php
-/**
- * @param string $msgID Message ID
- * @param string $partnerTxID Partner transaction ID
- * @param int $amount Transaction amount as integer
- * @param string $currency Currency for the transaction
- */
-$response =  $merchantIntegrationOffline->posCreateQRCode($msgID, $partnerTxID, $amount, $currency);
+$params = new CreateQrCodeParams([
+    'amount'      => int, // Transaction amount as integer
+    'currency'    => 'string', // Currency for the transaction
+    'msgID'       => 'string', // Message ID
+    'partnerTxID' => 'string', // Partner transaction ID
+]);
+$response =  $merchantIntegrationOffline->createQrCode($params);
 ```
 
 #### If merchant is on CPQR code, use this to perform the transaction
 
 ```php
-/**
- * @param string $msgID Message ID
- * @param string $partnerTxID Partner transaction ID
- * @param int $amount Transaction amount as integer
- * @param string $currency Currency for the transaction
- * @param string $code QR code
- */
-$response = $merchantIntegrationOffline->posPerformQRCode($msgID, $partnerTxID, $amount, $currency, $code);
+$params = new PerformQrCodeTxnParams([
+    'amount'      => int, // Transaction amount as integer
+    'code'        => 'string', // Scanned QR code
+    'currency'    => 'string', // Currency for the transaction
+    'msgID'       => 'string', // Message ID
+    'partnerTxID' => 'string', // Partner transaction ID
+]);
+$response = $merchantIntegrationOffline->performQrCode($params);
 ```
 
 #### Cancel transaction that hasn't been processed
 
 ```php
-/**
- * @param string $msgID Message ID
- * @param string $partnerTxID Partner transaction ID
- * @param string $origPartnerTxID Partner transaction ID to cancel
- * @param string $origTxID Original partner transaction ID
- * @param string $currency Currency Currency for the transaction
- */
-$response = $merchantIntegrationOffline->posCancel($msgID, $partnerTxID, $origPartnerTxID, $origTxID, $currency);
+$params = new CancelTxnParams([
+    'currency'        => 'string', // Currency Currency for the transaction
+    'msgID'           => 'string', // Message ID
+    'origPartnerTxID' => 'string', // Original partner transaction ID
+]);
+$response = $merchantIntegrationOffline->cancel($params);
 ```
 
 #### Refund transaction that has been charged
 
 ```php
-/**
- * @param string $msgID Message ID
- * @param string $refundPartnerTxID Refund transaction ID
- * @param int $amount Transaction amount as integer
- * @param string $currency Currency for the transaction
- * @param string $origPartnerTxID Original transaction ID to be refunded
- * @param string $description Description of the charge
- */
-$response = $merchantIntegrationOffline->posRefund($msgID, $refundPartnerTxID, $amount, $currency, $origPartnerTxID, $description);
+$params = new RefundTxnParams([
+    'amount'          => int, // Refunded amount as integer
+    'currency'        => 'string', // Currency for the refunded transaction
+    'msgID'           => 'string', // Message ID
+    'origPartnerTxID' => 'string', // Original partner transaction ID to be refunded
+    'partnerTxID'     => 'string', // Partner transaction ID to be refunded
+    'reason'          => 'string', // Description of the refund
+]);
+$response = $merchantIntegrationOffline->refund($params);
 ```
 
 #### Get status of the transaction
 
 ```php
-/**
- * @param string $msgID Message ID
- * @param string $partnerTxID Partner transaction ID
- * @param string $currency Currency for the transaction
- */
-$response = $merchantIntegrationOffline->posGetTxnStatus($msgID, $partnerTxID, $currency);
+$params = new GetTxnDetailsParams([
+    'currency'    => 'string', // Currency for the transaction
+    'msgID'       => 'string', // Message ID
+    'partnerTxID' => 'string', // Partner transaction ID
+]);
+$response = $merchantIntegrationOffline->getTxnDetails($params);
 ```
 
 #### Get status of the refunded transaction
 
 ```php
-/**
- * @param string $msgID Message ID
- * @param string $refundPartnerTxID Refund transaction ID
- * @param string $currency Currency for the transaction
- */
-$response = $merchantIntegrationOffline->posGetRefundStatus($msgID, $refundPartnerTxID, $currency);
+$params = new GetTxnDetailsParams([
+    'currency'    => 'string', // Currency for the transaction
+    'msgID'       => 'string', // Message ID
+    'partnerTxID' => 'string', // Partner transaction ID
+]);
+$response = $merchantIntegrationOffline->getRefundDetails($params);
 ```
 
 ## License

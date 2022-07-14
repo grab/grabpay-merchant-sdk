@@ -4,6 +4,18 @@ declare(strict_types=1);
 
 namespace GrabPay\Merchant;
 
+use GrabPay\Merchant\Models\Offline\CancelTxnParams;
+use GrabPay\Merchant\Models\Offline\CancelTxnResponse;
+use GrabPay\Merchant\Models\Offline\CreateQrCodeParams;
+use GrabPay\Merchant\Models\Offline\CreateQrCodeResponse;
+use GrabPay\Merchant\Models\Offline\GetTxnDetailsParams;
+use GrabPay\Merchant\Models\Offline\GetTxnDetailsResponse;
+use GrabPay\Merchant\Models\Offline\PerformQrCodeTxnParams;
+use GrabPay\Merchant\Models\Offline\PerformQrCodeTxnResponse;
+use GrabPay\Merchant\Models\Offline\RefundTxnParams;
+use GrabPay\Merchant\Models\Offline\RefundTxnResponse;
+use GrabPay\Merchant\Models\Response;
+
 class MerchantIntegrationOffline extends MerchantIntegration
 {
     /**
@@ -20,62 +32,18 @@ class MerchantIntegrationOffline extends MerchantIntegration
     {
         parent::__construct($environment, $country, $partnerID, $partnerSecret, $merchantID);
 
+        $this->type = self::TYPE_OFFLINE;
         $this->terminalID = $terminalID;
-    }
 
-    /**
-     * Use this endpoint to accept payments using the Merchant Presented QR (MPQR) code.
-     * This endpoint creates a payment order with a unique reference txID and returns a QR code string encoded with the merchant detail, amount, and txID.
-     *
-     * @param string $msgID Message ID
-     * @param string $partnerTxID Partner transaction ID
-     * @param int $amount Transaction amount as integer
-     * @param string $currency Currency for the transaction
-     */
-    public function posCreateQRCode(string $msgID, string $partnerTxID, int $amount, string $currency): Response
-    {
-        try {
-            $env = $this->getPartnerInfo();
-            $requestBody = [
-                'amount'      => $amount,
-                'currency'    => $currency,
-                'partnerTxID' => $partnerTxID,
-                'msgID'       => $msgID,
-            ];
-
-            return $this->sendPostRequest($env['createQrCode'], $requestBody, self::TYPE_OFFLINE);
-        } catch (\Exception $ex) {
-            return $this->handleException($ex);
-        }
-    }
-
-    /**
-     * Use this endpoint to accept payments from a Consumer Presented QR (CPQR) code.
-     * The endpoint performs a payment transaction based on the consumer presented QR code.
-     * The transaction initiates a charge on the wallet associated with the requested QR code and completes a payout to the merchant Grab ID.
-     *
-     * @param string $msgID Message ID
-     * @param string $partnerTxID Partner transaction ID
-     * @param int $amount Transaction amount as integer
-     * @param string $currency Currency for the transaction
-     * @param string $code QR code
-     */
-    public function posPerformQRCode(string $msgID, string $partnerTxID, int $amount, string $currency, string $code): Response
-    {
-        try {
-            $env = $this->getPartnerInfo();
-            $requestBody = [
-                'amount'      => $amount,
-                'currency'    => $currency,
-                'partnerTxID' => $partnerTxID,
-                'msgID'       => $msgID,
-                'code'        => $code,
-            ];
-
-            return $this->sendPostRequest($env['performTxn'], $requestBody, self::TYPE_OFFLINE);
-        } catch (\Exception $ex) {
-            return $this->handleException($ex);
-        }
+        // Setup API paths
+        $apiPathPrefix = $this->isCountryVietnam() ? self::MOCA_PARTNERS_V1_PATH : self::REGIONAL_PARTNER_V1_PATH;
+        $this->apiPaths = [
+            'POS_CREATE_QR_CODE'      => $apiPathPrefix . '/terminal/qrcode/create',
+            'POS_CANCEL_TRANSACTION'  => $apiPathPrefix . '/terminal/transaction/{origPartnerTxID}/cancel',
+            'POS_REFUND_TRANSACTION'  => $apiPathPrefix . '/terminal/transaction/{origPartnerTxID}/refund',
+            'POS_PERFORM_TRANSACTION' => $apiPathPrefix . '/terminal/transaction/perform',
+            'POS_GET_TXN_DETAIL'      => $apiPathPrefix . '/terminal/transaction/{partnerTxID}',
+        ];
     }
 
     /**
@@ -83,27 +51,100 @@ class MerchantIntegrationOffline extends MerchantIntegration
      * You can cancel a transaction if the payment status is in unknown state after 30 seconds.
      * Payments that are successfully charged cannot be cancelled; use the refund method instead.
      *
-     * @param string $msgID Message ID
-     * @param string $partnerTxID Partner transaction ID
-     * @param string $origPartnerTxID Partner transaction ID to cancel
-     * @param string $origTxID Original partner transaction ID
-     * @param string $currency Currency Currency for the transaction
+     * @param CancelTxnParams $cancelTxnParams Params
+     *
+     * @return CancelTxnResponse|ErrorResponse
      */
-    public function posCancel(string $msgID, string $partnerTxID, string $origPartnerTxID, string $origTxID, string $currency): Response
+    public function cancel(CancelTxnParams $cancelTxnParams): Response
     {
-        try {
-            $env = $this->getPartnerInfo();
-            $requestBody = [
-                'currency'    => $currency,
-                'origTxID'    => $origTxID,
-                'partnerTxID' => $partnerTxID,
-                'msgID'       => $msgID,
-            ];
+        $url = str_replace('{origPartnerTxID}', $cancelTxnParams->origPartnerTxID, $this->apiPaths['POS_CANCEL_TRANSACTION']);
 
-            return $this->sendPutRequest(str_replace('{origPartnerTxID}', $origPartnerTxID, $env['cancelQrTxn']), $requestBody, self::TYPE_OFFLINE);
-        } catch (\Exception $ex) {
-            return $this->handleException($ex);
-        }
+        $requestBody = [
+            'currency' => $cancelTxnParams->currency,
+            'msgID'    => $cancelTxnParams->msgID,
+        ];
+
+        return $this->sendPutRequest(CancelTxnResponse::class, $url, $requestBody);
+    }
+
+    /**
+     * Use this endpoint to accept payments using the Merchant Presented QR (MPQR) code.
+     * This endpoint creates a payment order with a unique reference txID and returns a QR code string encoded with the merchant detail, amount, and txID.
+     *
+     * @param CreateQrCodeParams $createQrCodeParams Params
+     *
+     * @return CreateQrCodeResponse|ErrorResponse
+     */
+    public function createQrCode(CreateQrCodeParams $createQrCodeParams): Response
+    {
+        $requestBody = [
+            'amount'      => $createQrCodeParams->amount,
+            'currency'    => $createQrCodeParams->currency,
+            'msgID'       => $createQrCodeParams->msgID,
+            'partnerTxID' => $createQrCodeParams->partnerTxID,
+        ];
+
+        return $this->sendPostRequest(CreateQrCodeResponse::class, $this->apiPaths['POS_CREATE_QR_CODE'], $requestBody);
+    }
+
+    /**
+     * Returns the refund transaction details.
+     *
+     * @param GetTxnDetailsParams $getTxnDetailsParams Params
+     *
+     * @return ErrorResponse|GetTxnDetailsResponse
+     */
+    public function getRefundDetails(GetTxnDetailsParams $getTxnDetailsParams): Response
+    {
+        $url = str_replace('{partnerTxID}', $getTxnDetailsParams->partnerTxID, $this->apiPaths['POS_GET_TXN_DETAIL']);
+        $url = $url . '?' . http_build_query([
+            'currency' => $getTxnDetailsParams->currency,
+            'msgID'    => $getTxnDetailsParams->msgID,
+            'txType'   => 'Refund',
+        ]);
+
+        return $this->sendGetRequest(GetTxnDetailsResponse::class, $url);
+    }
+
+    /**
+     * Returns the payment transaction details.
+     *
+     * @param GetTxnDetailsParams $getTxnDetailsParams Params
+     *
+     * @return ErrorResponse|GetTxnDetailsResponse
+     */
+    public function getTxnDetails(GetTxnDetailsParams $getTxnDetailsParams): Response
+    {
+        $url = str_replace('{partnerTxID}', $getTxnDetailsParams->partnerTxID, $this->apiPaths['POS_GET_TXN_DETAIL']);
+        $url = $url . '?' . http_build_query([
+            'currency' => $getTxnDetailsParams->currency,
+            'msgID'    => $getTxnDetailsParams->msgID,
+            'txType'   => 'P2M',
+        ]);
+
+        return $this->sendGetRequest(GetTxnDetailsResponse::class, $url);
+    }
+
+    /**
+     * Use this endpoint to accept payments from a Consumer Presented QR (CPQR) code.
+     * The endpoint performs a payment transaction based on the consumer presented QR code.
+     * The transaction initiates a charge on the wallet associated with the requested QR code and completes a payout to the merchant Grab ID.
+     *
+     * @param PerformQrCodeTxnParams $performQrCodeTxnParams Params
+     *
+     * @return ErrorResponse|PerformQrCodeTxnResponse
+     */
+    public function performQrCode(PerformQrCodeTxnParams $performQrCodeTxnParams): Response
+    {
+        $requestBody = [
+            'amount'      => $performQrCodeTxnParams->amount,
+            'code'        => $performQrCodeTxnParams->code,
+            'currency'    => $performQrCodeTxnParams->currency,
+            'msgID'       => $performQrCodeTxnParams->msgID,
+            'partnerTxID' => $performQrCodeTxnParams->partnerTxID,
+        ];
+
+        return $this->sendPostRequest(PerformQrCodeTxnResponse::class, $this->apiPaths['POS_PERFORM_TRANSACTION'], $requestBody);
     }
 
     /**
@@ -116,70 +157,22 @@ class MerchantIntegrationOffline extends MerchantIntegration
      *
      * You can request refund for only charges that were generated since the last 30 days.
      *
-     * @param string $msgID Message ID
-     * @param string $partnerTxID Refund transaction ID
-     * @param int $amount Transaction amount as integer
-     * @param string $currency Currency for the transaction
-     * @param string $origPartnerTxID Original transaction ID to be refunded
-     * @param string $description Description of the charge
-     */
-    public function posRefund(string $msgID, string $partnerTxID, int $amount, string $currency, string $origPartnerTxID, string $description): Response
-    {
-        try {
-            $env = $this->getPartnerInfo();
-            $requestBody = [
-                'currency'    => $currency,
-                'amount'      => $amount,
-                'reason'      => $description,
-                'partnerTxID' => $partnerTxID,
-                'msgID'       => $msgID,
-            ];
-
-            return $this->sendPutRequest(str_replace('{origPartnerTxID}', $origPartnerTxID, $env['posRefundTxn']), $requestBody, self::TYPE_OFFLINE);
-        } catch (\Exception $ex) {
-            return $this->handleException($ex);
-        }
-    }
-
-    /**
-     * Returns the payment transaction details.
+     * @param RefundTxnParams $refundTxnParams Params
      *
-     * @param string $msgID Message ID
-     * @param string $partnerTxID Partner transaction ID
-     * @param string $currency Currency for the transaction
+     * @return ErrorResponse|RefundTxnResponse
      */
-    public function posGetTxnStatus(string $msgID, string $partnerTxID, string $currency): Response
+    public function refund(RefundTxnParams $refundTxnParams): Response
     {
-        try {
-            $env = $this->getPartnerInfo();
-            $url = str_replace('{partnerTxID}', $partnerTxID, $env['posChargeStatus']);
-            $url = str_replace('{currency}', $currency, $url);
-            $url = str_replace('{msgID}', $msgID, $url);
+        $url = str_replace('{origPartnerTxID}', $refundTxnParams->origPartnerTxID, $this->apiPaths['POS_REFUND_TRANSACTION']);
 
-            return $this->sendGetRequest($url, self::TYPE_OFFLINE);
-        } catch (\Exception $ex) {
-            return $this->handleException($ex);
-        }
-    }
+        $requestBody = [
+            'amount'      => $refundTxnParams->amount,
+            'currency'    => $refundTxnParams->currency,
+            'msgID'       => $refundTxnParams->msgID,
+            'partnerTxID' => $refundTxnParams->partnerTxID,
+            'reason'      => $refundTxnParams->reason,
+        ];
 
-    /**
-     * Returns the refund transaction details.
-     *
-     * @param string $msgID Message ID
-     * @param string $refundPartnerTxID Refund transaction ID
-     * @param string $currency Currency for the transaction
-     */
-    public function posGetRefundStatus(string $msgID, string $refundPartnerTxID, string $currency): Response
-    {
-        try {
-            $env = $this->getPartnerInfo();
-            $url = str_replace('{refundPartnerTxID}', $refundPartnerTxID, $env['posChargeRefundStatus']);
-            $url = str_replace('{currency}', $currency, $url);
-            $url = str_replace('{msgID}', $msgID, $url);
-
-            return $this->sendGetRequest($url, self::TYPE_OFFLINE);
-        } catch (\Exception $ex) {
-            return $this->handleException($ex);
-        }
+        return $this->sendPutRequest(RefundTxnResponse::class, $url, $requestBody);
     }
 }

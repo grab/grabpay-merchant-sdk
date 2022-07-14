@@ -3,6 +3,12 @@
 declare(strict_types=1);
 
 use GrabPay\Merchant\MerchantIntegrationOnline;
+use GrabPay\Merchant\Models\Online\ChargeCompleteParams;
+use GrabPay\Merchant\Models\Online\GetChargeStatusParams;
+use GrabPay\Merchant\Models\Online\GetOtcStatusParams;
+use GrabPay\Merchant\Models\Online\GetRefundStatusParams;
+use GrabPay\Merchant\Models\Online\Oauth2TokenParams;
+use GrabPay\Merchant\Models\Online\RefundParams;
 
 // Requires
 include_once '../config.php';
@@ -16,7 +22,7 @@ session_start();
 $redirectUrl = 'http://localhost:8080/examples/online/otc_complete.php';
 
 // Amount to refund
-$amount = 168;
+$amount = 10;
 
 // Description of the refund
 $description = 'Test OTC Refund Payment';
@@ -28,30 +34,61 @@ $merchantIntegrationOnline = new MerchantIntegrationOnline(MerchantIntegrationOn
 $_SESSION['refundPartnerTxID'] = MerchantIntegrationOnline::generateRandomString();
 
 // Check for OAuth2 code
-$onaOAuth2Token = null;
+$oauth2Token = null;
 if (! empty($_REQUEST['code'])) {
-    $onaOAuth2Token = $merchantIntegrationOnline->onaOAuth2Token($_REQUEST['code'], $_SESSION['codeVerifier']);
-    $_SESSION['accessToken'] = $onaOAuth2Token->getBody()->access_token;
+    $oauth2TokenParams = new Oauth2TokenParams([
+        'code'         => $_REQUEST['code'],
+        'codeVerifier' => $_SESSION['codeVerifier'],
+    ]);
+    $oauth2Token = $merchantIntegrationOnline->oauth2Token($oauth2TokenParams);
+    $_SESSION['accessToken'] = $oauth2Token->data->access_token;
 }
 
 // Complete the charge
-$completeCharge = null;
+$chargeComplete = null;
 if (! empty($_SESSION['accessToken'])) {
-    $onaChargeComplete = $merchantIntegrationOnline->onaChargeComplete($_SESSION['partnerTxID'], $_SESSION['accessToken']);
-    $_SESSION['originTxID'] = $onaChargeComplete->getBody()->txID;
+    $chargeCompleteParams = new ChargeCompleteParams([
+        'partnerTxID' => $_SESSION['partnerTxID'],
+        'accessToken' => $_SESSION['accessToken'],
+    ]);
+    $chargeComplete = $merchantIntegrationOnline->chargeComplete($chargeCompleteParams);
+    $_SESSION['originTxID'] = $chargeComplete->data->txID;
 }
 
 //  Get the status of the transaction with oauth access token
-$onaGetChargeStatus = $merchantIntegrationOnline->onaGetChargeStatus($_SESSION['partnerTxID'], MerchantIntegrationOnline::SGD, $_SESSION['accessToken']);
+$getChargeStatusParams = new GetChargeStatusParams([
+    'partnerTxID' => $_SESSION['partnerTxID'],
+    'currency'    => MerchantIntegrationOnline::SGD,
+    'accessToken' => $_SESSION['accessToken'],
+]);
+$getChargeStatus = $merchantIntegrationOnline->getChargeStatus($getChargeStatusParams);
 
 //  Get the status of the transaction without the need of an oauth access token
-$onaGetOTCStatus = $merchantIntegrationOnline->onaGetOTCStatus($_SESSION['partnerTxID'], MerchantIntegrationOnline::SGD);
+$getOtcStatusParams = new GetOtcStatusParams([
+    'partnerTxID' => $_SESSION['partnerTxID'],
+    'currency'    => MerchantIntegrationOnline::SGD,
+]);
+$getOtcStatus = $merchantIntegrationOnline->getOtcStatus($getOtcStatusParams);
 
-//  Get the status of the transaction with oauth access token
-$onaRefund = $merchantIntegrationOnline->onaRefund($_SESSION['refundPartnerTxID'], $_SESSION['partnerGroupTxID'], $amount, MerchantIntegrationOnline::SGD, $_SESSION['originTxID'], $description, $_SESSION['accessToken']);
+// Refund the transaction
+$refundParams = new RefundParams([
+    'partnerTxID'      => $_SESSION['refundPartnerTxID'],
+    'partnerGroupTxID' => $_SESSION['partnerGroupTxID'],
+    'amount'           => $amount,
+    'currency'         => MerchantIntegrationOnline::SGD,
+    'originTxID'       => $_SESSION['originTxID'],
+    'description'      => $description,
+    'accessToken'      => $_SESSION['accessToken'],
+]);
+$refund = $merchantIntegrationOnline->refund($refundParams);
 
-//  Get the status of the transaction without the need of an oauth access token
-$onaGetRefundStatus = $merchantIntegrationOnline->onaGetRefundStatus($_SESSION['refundPartnerTxID'], MerchantIntegrationOnline::SGD, $_SESSION['accessToken']);
+// Get the status of the refund transaction
+$getRefundStatusParams = new GetRefundStatusParams([
+    'partnerTxID' => $_SESSION['refundPartnerTxID'],
+    'currency'    => MerchantIntegrationOnline::SGD,
+    'accessToken' => $_SESSION['accessToken'],
+]);
+$getRefundStatus = $merchantIntegrationOnline->getRefundStatus($getRefundStatusParams);
 ?>
 <!doctype html>
 <html lang="en">
@@ -60,23 +97,23 @@ $onaGetRefundStatus = $merchantIntegrationOnline->onaGetRefundStatus($_SESSION['
         <title>One-Time Charge Complete</title>
     </head>
     <body>
-        <p>onaOAuth2Token</p>
-        <pre><?php print_r($onaOAuth2Token->getBody()); ?></pre>
+        <p>oauth2Token</p>
+        <pre><?php print_r($oauth2Token->data); ?></pre>
         <p>accessToken</p>
         <pre><?php print_r($_SESSION['accessToken']); ?></pre>
-        <p>onaChargeComplete</p>
-        <pre><?php print_r($onaChargeComplete->getBody()); ?></pre>
+        <p>chargeComplete</p>
+        <pre><?php print_r($chargeComplete->data); ?></pre>
         <p>originTxID</p>
         <pre><?php print_r($_SESSION['originTxID']); ?></pre>
-        <p>onaGetChargeStatus</p>
-        <pre><?php print_r($onaGetChargeStatus->getBody()); ?></pre>
-        <p>onaGetOTCStatus</p>
-        <pre><?php print_r($onaGetOTCStatus->getBody()); ?></pre>
+        <p>getChargeStatus</p>
+        <pre><?php print_r($getChargeStatus->data); ?></pre>
+        <p>getOtcStatus</p>
+        <pre><?php print_r($getOtcStatus->data); ?></pre>
         <p>refundPartnerTxID</p>
         <pre><?php print_r($_SESSION['refundPartnerTxID']); ?></pre>
-        <p>onaRefund</p>
-        <pre><?php print_r($onaRefund->getBody()); ?></pre>
-        <p>onaGetRefundStatus</p>
-        <pre><?php print_r($onaGetRefundStatus->getBody()); ?></pre>
+        <p>refund</p>
+        <pre><?php print_r($refund->data); ?></pre>
+        <p>getRefundStatus</p>
+        <pre><?php print_r($getRefundStatus->data); ?></pre>
     </body>
 </html>
