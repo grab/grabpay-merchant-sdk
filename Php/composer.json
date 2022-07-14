@@ -22,7 +22,8 @@
   },
   "require": {
     "php": "^7.4 || ^8.0",
-    "mashape/unirest-php": "^3.0"
+    "mashape/unirest-php": "^3.0",
+    "spatie/data-transfer-object": "^2.0"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3.8",
@@ -31,6 +32,9 @@
   "scripts": {
     "lint": [
       "./vendor/bin/php-cs-fixer fix"
+    ],
+    "start": [
+      "php -S localhost:8080 -t ."
     ],
     "test": [
       "./vendor/phpunit/phpunit/phpunit tests"

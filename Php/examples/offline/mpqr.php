@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use GrabPay\Merchant\MerchantIntegrationOffline;
+use GrabPay\Merchant\Models\Offline\CreateQrCodeParams;
 
 // Requires
 include_once '../config.php';
@@ -19,15 +20,21 @@ $amount = 10;
 $partnerTxID = MerchantIntegrationOffline::generateRandomString();
 
 // Creates a payment order from a Merchant Presented QR (MPQR) code.
-$posCreateQRCode = $merchantIntegrationOffline->posCreateQRCode(MerchantIntegrationOffline::generateRandomString(), $partnerTxID, $amount, MerchantIntegrationOffline::SGD);
+$createQrCodeParams = new CreateQrCodeParams([
+    'amount'      => $amount,
+    'currency'    => MerchantIntegrationOffline::SGD,
+    'msgID'       => MerchantIntegrationOffline::generateRandomString(),
+    'partnerTxID' => $partnerTxID,
+]);
+$createQrCode = $merchantIntegrationOffline->createQrCode($createQrCodeParams);
 
 // Display QR Code using Google Charts
 $googleChartQrCodeImgUrl = '';
-if (!empty($posCreateQRCode->getBody()->qrcode)) {
+if (! empty($createQrCode->data->qrcode)) {
     $googleChartQrCodeImgUrl = 'https://chart.googleapis.com/chart?' . http_build_query([
-        'cht' => 'qr',
+        'chl' => $createQrCode->data->qrcode ?? '',
         'chs' => '300x300',
-        'chl' => $posCreateQRCode->getBody()->qrcode ?? '',
+        'cht' => 'qr',
     ]);
 }
 ?>
@@ -42,9 +49,9 @@ if (!empty($posCreateQRCode->getBody()->qrcode)) {
 <body>
     <p>partnerTxID</p>
     <pre><?php print_r($partnerTxID); ?></pre>
-    <p>posCreateQRCode</p>
+    <p>createQrCode</p>
     <img src="<?php echo $googleChartQrCodeImgUrl; ?>" title="Merchant Present QR (MPQR) Code" />
-    <pre><?php print_r($posCreateQRCode->getBody()); ?></pre>
+    <pre><?php print_r($createQrCode->data); ?></pre>
 </body>
 
 </html>

@@ -3,6 +3,10 @@
 declare(strict_types=1);
 
 use GrabPay\Merchant\MerchantIntegrationOffline;
+use GrabPay\Merchant\Models\Offline\CancelTxnParams;
+use GrabPay\Merchant\Models\Offline\GetTxnDetailsParams;
+use GrabPay\Merchant\Models\Offline\PerformQrCodeTxnParams;
+use GrabPay\Merchant\Models\Offline\RefundTxnParams;
 
 // Requires
 include_once '../config.php';
@@ -15,31 +19,59 @@ $merchantIntegrationOffline = new MerchantIntegrationOffline(MerchantIntegration
 // Amount to charge
 $amount = 10;
 
-// Description of the refund
-$refundDescription = 'Test CPQR Refund Payment';
-
 // Partner transaction ID
 $partnerTxID = MerchantIntegrationOffline::generateRandomString();
 
 // Scanned QR Code
-$qrCode = '650000000000000000';
+$code = '650000000000000000';
 
 // Performs a payment transaction from a Customer Presented QR (CPQR) code
-$posPerformQRCode = $merchantIntegrationOffline->posPerformQRCode(MerchantIntegrationOffline::generateRandomString(), $partnerTxID, $amount, MerchantIntegrationOffline::SGD, $qrCode);
+$performQrCodeTxnParams = new PerformQrCodeTxnParams([
+    'amount'      => $amount,
+    'code'        => $code,
+    'currency'    => MerchantIntegrationOffline::SGD,
+    'msgID'       => MerchantIntegrationOffline::generateRandomString(),
+    'partnerTxID' => $partnerTxID,
+]);
+$performQrCode = $merchantIntegrationOffline->performQrCode($performQrCodeTxnParams);
 
 // Returns the payment transaction details
-$posGetTxnStatus = $merchantIntegrationOffline->posGetTxnStatus(MerchantIntegrationOffline::generateRandomString(), $partnerTxID, MerchantIntegrationOffline::SGD);
+$getTxnDetailsParams = new GetTxnDetailsParams([
+    'currency'    => MerchantIntegrationOffline::SGD,
+    'msgID'       => MerchantIntegrationOffline::generateRandomString(),
+    'partnerTxID' => $partnerTxID,
+]);
+$getTxnDetails = $merchantIntegrationOffline->getTxnDetails($getTxnDetailsParams);
 
 // Cancels a pending payment
 $cancelPartnerTxID = MerchantIntegrationOffline::generateRandomString();
-$posCancel = $merchantIntegrationOffline->posCancel(MerchantIntegrationOffline::generateRandomString(), $cancelPartnerTxID, $partnerTxID, $posPerformQRCode->getBody()->txID, MerchantIntegrationOffline::SGD);
+$cancelTxnParams = new CancelTxnParams([
+    'currency'        => MerchantIntegrationOffline::SGD,
+    'msgID'           => MerchantIntegrationOffline::generateRandomString(),
+    'origPartnerTxID' => $partnerTxID,
+]);
+$cancel = $merchantIntegrationOffline->cancel($cancelTxnParams);
 
 // Refunds a successful payment
 $refundPartnerTxID = MerchantIntegrationOffline::generateRandomString();
-$posRefund = $merchantIntegrationOffline->posRefund(MerchantIntegrationOffline::generateRandomString(), $refundPartnerTxID, $amount, MerchantIntegrationOffline::SGD, $partnerTxID, $refundDescription);
+$refundReason = 'Test CPQR Refund Payment';
+$refundTxnParams = new RefundTxnParams([
+    'amount'          => $amount,
+    'currency'        => MerchantIntegrationOffline::SGD,
+    'msgID'           => MerchantIntegrationOffline::generateRandomString(),
+    'origPartnerTxID' => $partnerTxID,
+    'partnerTxID'     => $refundPartnerTxID,
+    'reason'          => $refundReason,
+]);
+$refund = $merchantIntegrationOffline->refund($refundTxnParams);
 
 // Returns the refund transaction details
-$posGetRefundStatus = $merchantIntegrationOffline->posGetRefundStatus(MerchantIntegrationOffline::generateRandomString(), $refundPartnerTxID, MerchantIntegrationOffline::SGD);
+$getTxnDetailsParams = new GetTxnDetailsParams([
+    'currency'    => MerchantIntegrationOffline::SGD,
+    'msgID'       => MerchantIntegrationOffline::generateRandomString(),
+    'partnerTxID' => $refundPartnerTxID,
+]);
+$getRefundDetails = $merchantIntegrationOffline->getRefundDetails($getTxnDetailsParams);
 ?>
 <!doctype html>
 <html lang="en">
@@ -52,20 +84,20 @@ $posGetRefundStatus = $merchantIntegrationOffline->posGetRefundStatus(MerchantIn
 <body>
     <p>partnerTxID</p>
     <pre><?php print_r($partnerTxID); ?></pre>
-    <p>posPerformQRCode</p>
-    <pre><?php print_r($posPerformQRCode->getBody()); ?></pre>
-    <p>posGetTxnStatus</p>
-    <pre><?php print_r($posGetTxnStatus->getBody()); ?></pre>
+    <p>performQrCode</p>
+    <pre><?php print_r($performQrCode->data); ?></pre>
+    <p>getTxnDetails</p>
+    <pre><?php print_r($getTxnDetails->data); ?></pre>
     <p>cancelPartnerTxID</p>
     <pre><?php print_r($cancelPartnerTxID); ?></pre>
-    <p>posCancel</p>
-    <pre><?php print_r($posCancel->getBody()); ?></pre>
+    <p>cancel</p>
+    <pre><?php print_r($cancel->data); ?></pre>
     <p>refundPartnerTxID</p>
     <pre><?php print_r($refundPartnerTxID); ?></pre>
-    <p>posRefund</p>
-    <pre><?php print_r($posRefund->getBody()); ?></pre>
-    <p>posGetRefundStatus</p>
-    <pre><?php print_r($posGetRefundStatus->getBody()); ?></pre>
+    <p>refund</p>
+    <pre><?php print_r($refund->data); ?></pre>
+    <p>getRefundDetails</p>
+    <pre><?php print_r($getRefundDetails->data); ?></pre>
 </body>
 
 </html>

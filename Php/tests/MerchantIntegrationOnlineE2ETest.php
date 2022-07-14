@@ -6,9 +6,18 @@ namespace GrabPay\Merchant\Tests;
 
 use GrabPay\Merchant\MerchantIntegration;
 use GrabPay\Merchant\MerchantIntegrationOnline;
+use GrabPay\Merchant\Models\Online\ChargeCompleteParams;
+use GrabPay\Merchant\Models\Online\ChargeInitParams;
+use GrabPay\Merchant\Models\Online\GenerateWebUrlParams;
+use GrabPay\Merchant\Models\Online\GetChargeStatusParams;
+use GrabPay\Merchant\Models\Online\GetOtcStatusParams;
+use GrabPay\Merchant\Models\Online\GetRefundStatusParams;
+use GrabPay\Merchant\Models\Online\Oauth2TokenParams;
+use GrabPay\Merchant\Models\Online\RefundParams;
 
 /**
  * @internal
+ * @coversNothing
  */
 final class MerchantIntegrationOnlineE2ETest extends MerchantIntegrationTest
 {
@@ -21,25 +30,45 @@ final class MerchantIntegrationOnlineE2ETest extends MerchantIntegrationTest
         $this->merchantIntegrationOnline = new merchantIntegrationOnline(MerchantIntegration::STAGING, MerchantIntegration::SG, $_ENV['SG_STG_OTC_PARTNER_ID'], $_ENV['SG_STG_OTC_PARTNER_SECRET'], $_ENV['SG_STG_OTC_MERCHANT_ID'], $_ENV['SG_STG_OTC_CLIENT_ID'], $_ENV['SG_STG_OTC_CLIENT_SECRET'], self::REDIRECT_URL);
     }
 
-    public function testOnaChargeInit(): void
+    public function testChargeComplete(): void
     {
-        $response = $this->merchantIntegrationOnline->onaChargeInit(MerchantIntegration::generateRandomString(), MerchantIntegration::generateRandomString(), self::AMOUNT, MerchantIntegration::SGD, 'testing onaChargeInit');
-        $onaChargeInit = $response->getBody();
+        $chargeCompleteParams = new ChargeCompleteParams([
+            'accessToken' => MerchantIntegration::generateRandomString(),
+            'partnerTxID' => MerchantIntegration::generateRandomString(),
+        ]);
+        $response = $this->merchantIntegrationOnline->chargeComplete($chargeCompleteParams);
 
-        // Just to get the code coverage
-        static::assertNotEmpty($response->getHeaders());
-
-        static::assertSame(200, $response->getCode());
-        static::assertNotEmpty($onaChargeInit->partnerTxID);
-        static::assertNotEmpty($onaChargeInit->request);
+        static::assertSame(401, $response->status);
     }
 
-    public function testOnaCreateWebUrl(): void
+    public function testChargeInit(): void
+    {
+        $chargeInitParams = new ChargeInitParams([
+            'amount'           => self::AMOUNT,
+            'currency'         => MerchantIntegrationOnline::SGD,
+            'description'      => 'testing chargeInit',
+            'partnerGroupTxID' => MerchantIntegration::generateRandomString(),
+            'partnerTxID'      => MerchantIntegration::generateRandomString(),
+        ]);
+        $response = $this->merchantIntegrationOnline->chargeInit($chargeInitParams);
+        $chargeInit = $response->data;
+
+        static::assertSame(200, $response->status);
+        static::assertNotEmpty($chargeInit->partnerTxID);
+        static::assertNotEmpty($chargeInit->request);
+    }
+
+    public function testGenerateWebUrl(): void
     {
         $codeVerifier = MerchantIntegration::generateRandomString();
-        $requestToken = MerchantIntegration::generateRandomString();
+        $request = MerchantIntegration::generateRandomString();
 
-        $onaCreateWebUrl = $this->merchantIntegrationOnline->onaCreateWebUrl(MerchantIntegration::SGD, $codeVerifier, $requestToken);
+        $generateWebUrlParams = new GenerateWebUrlParams([
+            'currency'     => MerchantIntegration::SGD,
+            'codeVerifier' => $codeVerifier,
+            'request'      => $request,
+        ]);
+        $onaCreateWebUrl = $this->merchantIntegrationOnline->generateWebUrl($generateWebUrlParams);
         parse_str(parse_url($onaCreateWebUrl, PHP_URL_QUERY), $query);
 
         static::assertSame('consent_ctx:countryCode=' . MerchantIntegration::SG . ',currency=' . MerchantIntegration::SGD, $query['acr_values']);
@@ -47,50 +76,70 @@ final class MerchantIntegrationOnlineE2ETest extends MerchantIntegrationTest
         static::assertSame(MerchantIntegration::base64URLEncode(hash('sha256', $codeVerifier, true)), $query['code_challenge']);
         static::assertSame('S256', $query['code_challenge_method']);
         static::assertSame(self::REDIRECT_URL, $query['redirect_uri']);
-        static::assertSame($requestToken, $query['request']);
+        static::assertSame($request, $query['request']);
         static::assertSame('code', $query['response_type']);
         static::assertSame('payment.one_time_charge', $query['scope']);
     }
 
-    public function testOnaOAuth2Token(): void
+    public function testGetChargeStatus(): void
     {
-        $response = $this->merchantIntegrationOnline->onaOAuth2Token(MerchantIntegration::generateRandomString(), MerchantIntegration::generateRandomString());
+        $getChargeStatusParams = new GetChargeStatusParams([
+            'accessToken' => MerchantIntegration::generateRandomString(),
+            'currency'    => MerchantIntegrationOnline::SGD,
+            'partnerTxID' => MerchantIntegration::generateRandomString(),
+        ]);
+        $response = $this->merchantIntegrationOnline->getChargeStatus($getChargeStatusParams);
 
-        static::assertSame(400, $response->getCode());
+        static::assertSame(401, $response->status);
     }
 
-    public function testOnaChargeComplete(): void
+    public function testGetOtcStatus(): void
     {
-        $response = $this->merchantIntegrationOnline->onaChargeComplete(MerchantIntegration::generateRandomString(), MerchantIntegration::generateRandomString());
+        $getOtcStatusParams = new GetOtcStatusParams([
+            'currency'    => MerchantIntegrationOnline::SGD,
+            'partnerTxID' => MerchantIntegration::generateRandomString(),
+        ]);
+        $response = $this->merchantIntegrationOnline->getOtcStatus($getOtcStatusParams);
 
-        static::assertSame(401, $response->getCode());
+        static::assertSame(404, $response->status);
     }
 
-    public function testOnaGetChargeStatus(): void
+    public function testGetRefundStatus(): void
     {
-        $response = $this->merchantIntegrationOnline->onaGetChargeStatus(MerchantIntegration::generateRandomString(), MerchantIntegrationOnline::SGD, MerchantIntegration::generateRandomString());
+        $getRefundStatusParams = new GetRefundStatusParams([
+            'accessToken' => MerchantIntegration::generateRandomString(),
+            'currency'    => MerchantIntegrationOnline::SGD,
+            'partnerTxID' => MerchantIntegration::generateRandomString(),
+        ]);
+        $response = $this->merchantIntegrationOnline->getRefundStatus($getRefundStatusParams);
 
-        static::assertSame(401, $response->getCode());
+        static::assertSame(401, $response->status);
     }
 
-    public function testOnaGetOTCStatus(): void
+    public function testOauth2Token(): void
     {
-        $response = $this->merchantIntegrationOnline->onaGetOTCStatus(MerchantIntegration::generateRandomString(), MerchantIntegrationOnline::SGD);
+        $oauth2TokenParams = new Oauth2TokenParams([
+            'code'         => MerchantIntegration::generateRandomString(),
+            'codeVerifier' => MerchantIntegration::generateRandomString(),
+        ]);
+        $response = $this->merchantIntegrationOnline->oauth2Token($oauth2TokenParams);
 
-        static::assertSame(404, $response->getCode());
+        static::assertSame(400, $response->status);
     }
 
-    public function testOnaRefund(): void
+    public function testRefund(): void
     {
-        $response = $this->merchantIntegrationOnline->onaRefund(MerchantIntegration::generateRandomString(), MerchantIntegration::generateRandomString(), self::AMOUNT, MerchantIntegrationOnline::SGD, MerchantIntegration::generateRandomString(), 'testing onaRefund', MerchantIntegration::generateRandomString());
+        $refundParams = new RefundParams([
+            'accessToken'      => MerchantIntegration::generateRandomString(),
+            'amount'           => self::AMOUNT,
+            'currency'         => MerchantIntegrationOnline::SGD,
+            'description'      => 'testing refund',
+            'originTxID'       => MerchantIntegration::generateRandomString(),
+            'partnerGroupTxID' => MerchantIntegration::generateRandomString(),
+            'partnerTxID'      => MerchantIntegration::generateRandomString(),
+        ]);
+        $response = $this->merchantIntegrationOnline->refund($refundParams);
 
-        static::assertSame(401, $response->getCode());
-    }
-
-    public function testOnaGetRefundStatus(): void
-    {
-        $response = $this->merchantIntegrationOnline->onaGetRefundStatus(MerchantIntegration::generateRandomString(), MerchantIntegrationOnline::SGD, MerchantIntegration::generateRandomString());
-
-        static::assertSame(401, $response->getCode());
+        static::assertSame(401, $response->status);
     }
 }

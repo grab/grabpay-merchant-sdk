@@ -6,9 +6,15 @@ namespace GrabPay\Merchant\Tests;
 
 use GrabPay\Merchant\MerchantIntegration;
 use GrabPay\Merchant\MerchantIntegrationOffline;
+use GrabPay\Merchant\Models\Offline\CancelTxnParams;
+use GrabPay\Merchant\Models\Offline\CreateQrCodeParams;
+use GrabPay\Merchant\Models\Offline\GetTxnDetailsParams;
+use GrabPay\Merchant\Models\Offline\PerformQrCodeTxnParams;
+use GrabPay\Merchant\Models\Offline\RefundTxnParams;
 
 /**
  * @internal
+ * @coversNothing
  */
 final class MerchantIntegrationOfflineE2ETest extends MerchantIntegrationTest
 {
@@ -21,100 +27,173 @@ final class MerchantIntegrationOfflineE2ETest extends MerchantIntegrationTest
         $this->merchantIntegrationOffline = new MerchantIntegrationOffline(MerchantIntegration::STAGING, MerchantIntegration::SG, $_ENV['SG_STG_POS_PARTNER_ID'], $_ENV['SG_STG_POS_PARTNER_SECRET'], $_ENV['SG_STG_POS_MERCHANT_ID'], $_ENV['SG_STG_POS_TERMINAL_ID']);
     }
 
-    public function testPosCreateQRCode(): void
+    public function testCancel(): void
+    {
+        $msgID = MerchantIntegration::generateRandomString();
+        $partnerTxID = MerchantIntegration::generateRandomString();
+
+        $performQrCodeTxnParams = new PerformQrCodeTxnParams([
+            'amount'      => self::AMOUNT,
+            'code'        => self::QR_CODE,
+            'currency'    => MerchantIntegrationOffline::SGD,
+            'msgID'       => MerchantIntegration::generateRandomString(),
+            'partnerTxID' => $partnerTxID,
+        ]);
+        $this->merchantIntegrationOffline->performQrCode($performQrCodeTxnParams);
+        $cancelTxnParams = new CancelTxnParams([
+            'currency'        => MerchantIntegrationOffline::SGD,
+            'msgID'           => $msgID,
+            'origPartnerTxID' => $partnerTxID,
+        ]);
+        $response = $this->merchantIntegrationOffline->cancel($cancelTxnParams);
+        $cancel = $response->data;
+
+        static::assertSame(40011, $cancel->code);
+        static::assertSame('transaction status is not supported', $cancel->reason);
+    }
+
+    public function testCreateQrCode(): void
     {
         $msgID = MerchantIntegration::generateRandomString();
 
-        $response = $this->merchantIntegrationOffline->posCreateQRCode($msgID, MerchantIntegration::generateRandomString(), self::AMOUNT, MerchantIntegration::SGD);
-        $posCreateQRCode = $response->getBody();
+        $createQrCodeParams = new CreateQrCodeParams([
+            'amount'      => self::AMOUNT,
+            'currency'    => MerchantIntegrationOffline::SGD,
+            'msgID'       => $msgID,
+            'partnerTxID' => MerchantIntegration::generateRandomString(),
+        ]);
+
+        $response = $this->merchantIntegrationOffline->createQrCode($createQrCodeParams);
+        $createQrCode = $response->data;
 
         // Just to get the code coverage
-        static::assertNotEmpty($response->getHeaders());
+        static::assertNotEmpty($response->headers);
 
-        static::assertNotEmpty($posCreateQRCode->qrcode);
-        static::assertNotEmpty($posCreateQRCode->txID);
-        static::assertNotEmpty($posCreateQRCode->expiryTime);
+        static::assertNotEmpty($createQrCode->qrcode);
+        static::assertNotEmpty($createQrCode->txID);
+        static::assertNotEmpty($createQrCode->expiryTime);
     }
 
-    public function testPosPerformQRCode(): void
-    {
-        $msgID = MerchantIntegration::generateRandomString();
-
-        $response = $this->merchantIntegrationOffline->posPerformQRCode($msgID, MerchantIntegration::generateRandomString(), self::AMOUNT, MerchantIntegrationOffline::SGD, self::QR_CODE);
-        $posPerformQRCode = $response->getBody();
-
-        static::assertNotEmpty($posPerformQRCode->txID);
-        static::assertSame('success', $posPerformQRCode->status);
-        static::assertSame(self::AMOUNT, $posPerformQRCode->amount);
-        static::assertIsInt($posPerformQRCode->updated);
-        static::assertSame(MerchantIntegration::SGD, $posPerformQRCode->currency);
-    }
-
-    public function testPosGetTxnStatus(): void
-    {
-        $msgID = MerchantIntegration::generateRandomString();
-        $partnerTxID = MerchantIntegration::generateRandomString();
-
-        $this->merchantIntegrationOffline->posPerformQRCode(MerchantIntegration::generateRandomString(), $partnerTxID, self::AMOUNT, MerchantIntegrationOffline::SGD, self::QR_CODE);
-        $response = $this->merchantIntegrationOffline->posGetTxnStatus($msgID, $partnerTxID, MerchantIntegrationOffline::SGD);
-        $posGetTxnStatus = $response->getBody();
-
-        static::assertNotEmpty($posGetTxnStatus->txID);
-        static::assertSame('success', $posGetTxnStatus->status);
-        static::assertSame(self::AMOUNT, $posGetTxnStatus->amount);
-        static::assertIsInt($posGetTxnStatus->updated);
-        static::assertSame(MerchantIntegration::SGD, $posGetTxnStatus->currency);
-    }
-
-    public function testPosCancel(): void
-    {
-        $msgID = MerchantIntegration::generateRandomString();
-        $partnerTxID = MerchantIntegration::generateRandomString();
-
-        $posPerformQRCode = $this->merchantIntegrationOffline->posPerformQRCode(MerchantIntegration::generateRandomString(), $partnerTxID, self::AMOUNT, MerchantIntegrationOffline::SGD, self::QR_CODE);
-        $response = $this->merchantIntegrationOffline->posCancel($msgID, MerchantIntegration::generateRandomString(), $partnerTxID, $posPerformQRCode->getBody()->txID, MerchantIntegrationOffline::SGD);
-        $posCancel = $response->getBody();
-
-        static::assertSame(40011, $posCancel->code);
-        static::assertSame('transaction status is not supported', $posCancel->reason);
-    }
-
-    public function testPosRefund(): void
-    {
-        $msgID = MerchantIntegration::generateRandomString();
-        $partnerTxID = MerchantIntegration::generateRandomString();
-
-        $posPerformQRCode = $this->merchantIntegrationOffline->posPerformQRCode(MerchantIntegration::generateRandomString(), $partnerTxID, self::AMOUNT, MerchantIntegrationOffline::SGD, self::QR_CODE);
-        $response = $this->merchantIntegrationOffline->posRefund($msgID, MerchantIntegration::generateRandomString(), self::AMOUNT, MerchantIntegrationOffline::SGD, $partnerTxID, 'testing posRefund');
-        $posRefund = $response->getBody();
-
-        static::assertSame($msgID, $posRefund->msgID);
-        static::assertNotEmpty($posRefund->txID);
-        static::assertSame($posPerformQRCode->getBody()->txID, $posRefund->originTxID);
-        static::assertSame('success', $posRefund->status);
-        static::assertEmpty($posRefund->description);
-        static::assertSame(self::AMOUNT, $posRefund->additionalInfo->amountBreakdown->paidAmount);
-        static::assertSame(self::AMOUNT, $posRefund->additionalInfo->amountBreakdown->refundedChargeAmount);
-        static::assertSame(self::AMOUNT, $posRefund->additionalInfo->amountBreakdown->revokePayoutAmount);
-        static::assertEmpty($posRefund->msg);
-    }
-
-    public function testPosGetRefundStatus(): void
+    public function testGetRefundDetails(): void
     {
         $msgID = MerchantIntegration::generateRandomString();
         $partnerTxID = MerchantIntegration::generateRandomString();
         $refundPartnerTxID = MerchantIntegration::generateRandomString();
 
-        $this->merchantIntegrationOffline->posPerformQRCode(MerchantIntegration::generateRandomString(), $partnerTxID, self::AMOUNT, MerchantIntegrationOffline::SGD, self::QR_CODE);
-        $this->merchantIntegrationOffline->posRefund(MerchantIntegration::generateRandomString(), $refundPartnerTxID, self::AMOUNT, MerchantIntegrationOffline::SGD, $partnerTxID, 'testing posRefund');
-        $response = $this->merchantIntegrationOffline->posGetRefundStatus($msgID, $refundPartnerTxID, MerchantIntegrationOffline::SGD);
-        $posGetRefundStatus = $response->getBody();
+        $performQrCodeTxnParams = new PerformQrCodeTxnParams([
+            'amount'      => self::AMOUNT,
+            'code'        => self::QR_CODE,
+            'currency'    => MerchantIntegrationOffline::SGD,
+            'msgID'       => MerchantIntegration::generateRandomString(),
+            'partnerTxID' => $partnerTxID,
+        ]);
+        $this->merchantIntegrationOffline->performQrCode($performQrCodeTxnParams);
+        $refundTxnParams = new RefundTxnParams([
+            'amount'          => self::AMOUNT,
+            'currency'        => MerchantIntegrationOffline::SGD,
+            'msgID'           => MerchantIntegrationOffline::generateRandomString(),
+            'origPartnerTxID' => $partnerTxID,
+            'partnerTxID'     => $refundPartnerTxID,
+            'reason'          => 'testing refund',
+        ]);
+        $this->merchantIntegrationOffline->refund($refundTxnParams);
+        $getTxnDetailsParams = new GetTxnDetailsParams([
+            'currency'    => MerchantIntegrationOffline::SGD,
+            'msgID'       => $msgID,
+            'partnerTxID' => $refundPartnerTxID,
+        ]);
+        $response = $this->merchantIntegrationOffline->getRefundDetails($getTxnDetailsParams);
+        $getRefundDetails = $response->data;
 
-        static::assertSame($msgID, $posGetRefundStatus->msgID);
-        static::assertNotEmpty($posGetRefundStatus->txID);
-        static::assertSame('success', $posGetRefundStatus->status);
-        static::assertSame(self::AMOUNT, $posGetRefundStatus->amount);
-        static::assertIsInt($posGetRefundStatus->updated);
-        static::assertSame(MerchantIntegration::SGD, $posGetRefundStatus->currency);
+        static::assertSame($msgID, $getRefundDetails->msgID);
+        static::assertNotEmpty($getRefundDetails->txID);
+        static::assertSame('success', $getRefundDetails->status);
+        static::assertSame(self::AMOUNT, $getRefundDetails->amount);
+        static::assertIsInt($getRefundDetails->updated);
+        static::assertSame(MerchantIntegration::SGD, $getRefundDetails->currency);
+    }
+
+    public function testGetTxnDetails(): void
+    {
+        $msgID = MerchantIntegration::generateRandomString();
+        $partnerTxID = MerchantIntegration::generateRandomString();
+
+        $performQrCodeTxnParams = new PerformQrCodeTxnParams([
+            'amount'      => self::AMOUNT,
+            'code'        => self::QR_CODE,
+            'currency'    => MerchantIntegrationOffline::SGD,
+            'msgID'       => MerchantIntegration::generateRandomString(),
+            'partnerTxID' => $partnerTxID,
+        ]);
+        $this->merchantIntegrationOffline->performQrCode($performQrCodeTxnParams);
+        $getTxnDetailsParams = new GetTxnDetailsParams([
+            'currency'    => MerchantIntegrationOffline::SGD,
+            'msgID'       => $msgID,
+            'partnerTxID' => $partnerTxID,
+        ]);
+        $response = $this->merchantIntegrationOffline->getTxnDetails($getTxnDetailsParams);
+        $getTxnDetails = $response->data;
+
+        static::assertNotEmpty($getTxnDetails->txID);
+        static::assertSame('success', $getTxnDetails->status);
+        static::assertSame(self::AMOUNT, $getTxnDetails->amount);
+        static::assertIsInt($getTxnDetails->updated);
+        static::assertSame(MerchantIntegration::SGD, $getTxnDetails->currency);
+    }
+
+    public function testPerformQrCode(): void
+    {
+        $msgID = MerchantIntegration::generateRandomString();
+
+        $performQrCodeTxnParams = new PerformQrCodeTxnParams([
+            'amount'      => self::AMOUNT,
+            'code'        => self::QR_CODE,
+            'currency'    => MerchantIntegrationOffline::SGD,
+            'msgID'       => $msgID,
+            'partnerTxID' => MerchantIntegration::generateRandomString(),
+        ]);
+        $response = $this->merchantIntegrationOffline->performQrCode($performQrCodeTxnParams);
+        $performQrCode = $response->data;
+
+        static::assertNotEmpty($performQrCode->txID);
+        static::assertSame('success', $performQrCode->status);
+        static::assertSame(self::AMOUNT, $performQrCode->amount);
+        static::assertIsInt($performQrCode->updated);
+        static::assertSame(MerchantIntegration::SGD, $performQrCode->currency);
+    }
+
+    public function testRefund(): void
+    {
+        $msgID = MerchantIntegration::generateRandomString();
+        $partnerTxID = MerchantIntegration::generateRandomString();
+
+        $performQrCodeTxnParams = new PerformQrCodeTxnParams([
+            'amount'      => self::AMOUNT,
+            'code'        => self::QR_CODE,
+            'currency'    => MerchantIntegrationOffline::SGD,
+            'msgID'       => MerchantIntegration::generateRandomString(),
+            'partnerTxID' => $partnerTxID,
+        ]);
+        $performQrCode = $this->merchantIntegrationOffline->performQrCode($performQrCodeTxnParams);
+        $refundTxnParams = new RefundTxnParams([
+            'amount'          => self::AMOUNT,
+            'currency'        => MerchantIntegrationOffline::SGD,
+            'msgID'           => $msgID,
+            'origPartnerTxID' => $partnerTxID,
+            'partnerTxID'     => MerchantIntegration::generateRandomString(),
+            'reason'          => 'testing refund',
+        ]);
+        $response = $this->merchantIntegrationOffline->refund($refundTxnParams);
+        $refund = $response->data;
+
+        static::assertSame($msgID, $refund->msgID);
+        static::assertNotEmpty($refund->txID);
+        static::assertSame($performQrCode->data->txID, $refund->originTxID);
+        static::assertSame('success', $refund->status);
+        static::assertEmpty($refund->description);
+        static::assertSame(self::AMOUNT, $refund->additionalInfo->amountBreakdown->paidAmount);
+        static::assertSame(self::AMOUNT, $refund->additionalInfo->amountBreakdown->refundedChargeAmount);
+        static::assertSame(self::AMOUNT, $refund->additionalInfo->amountBreakdown->revokePayoutAmount);
+        static::assertEmpty($refund->msg);
     }
 }

@@ -6,15 +6,24 @@ namespace GrabPay\Merchant\Tests;
 
 use GrabPay\Merchant\MerchantIntegration;
 use GrabPay\Merchant\MerchantIntegrationOffline;
-use GrabPay\Merchant\Response;
+use GrabPay\Merchant\Models\Offline\CancelTxnParams;
+use GrabPay\Merchant\Models\Offline\CancelTxnResponse;
+use GrabPay\Merchant\Models\Offline\CreateQrCodeParams;
+use GrabPay\Merchant\Models\Offline\CreateQrCodeResponse;
+use GrabPay\Merchant\Models\Offline\GetTxnDetailsParams;
+use GrabPay\Merchant\Models\Offline\GetTxnDetailsResponse;
+use GrabPay\Merchant\Models\Offline\PerformQrCodeTxnParams;
+use GrabPay\Merchant\Models\Offline\PerformQrCodeTxnResponse;
+use GrabPay\Merchant\Models\Offline\RefundTxnParams;
+use GrabPay\Merchant\Models\Offline\RefundTxnResponse;
 
 /**
  * @internal
+ * @coversNothing
  */
 final class MerchantIntegrationOfflineUnitTest extends MerchantIntegrationTest
 {
     private MerchantIntegrationOffline $merchantIntegrationOffline;
-    private MerchantIntegrationOffline $merchantIntegrationOfflineException;
 
     protected function setUp(): void
     {
@@ -31,14 +40,30 @@ final class MerchantIntegrationOfflineUnitTest extends MerchantIntegrationTest
             ->onlyMethods(['sendGetRequest', 'sendPostRequest', 'sendPutRequest'])
             ->getMock()
         ;
-
-        $this->merchantIntegrationOfflineException = $mockBuilder
-            ->onlyMethods(['getPartnerInfo'])
-            ->getMock()
-        ;
     }
 
-    public function testPosCreateQRCode(): void
+    public function testCancel(): void
+    {
+        $msgID = MerchantIntegration::generateRandomString();
+        $origPartnerTxID = MerchantIntegration::generateRandomString();
+
+        $params = new CancelTxnParams([
+            'currency'        => MerchantIntegration::SGD,
+            'msgID'           => $msgID,
+            'origPartnerTxID' => $origPartnerTxID,
+        ]);
+
+        $response = ['status' => 200,
+            'headers'         => [],
+            'data'            => null, ];
+
+        $this->merchantIntegrationOffline->expects(static::once())->method('sendPutRequest')->willReturn(new CancelTxnResponse($response));
+        $cancel = $this->merchantIntegrationOffline->cancel($params);
+
+        static::assertInstanceOf(CancelTxnResponse::class, $cancel);
+    }
+
+    public function testCreateQrCode(): void
     {
         $msgID = MerchantIntegration::generateRandomString();
         $qrcode = MerchantIntegration::generateRandomString();
@@ -46,80 +71,131 @@ final class MerchantIntegrationOfflineUnitTest extends MerchantIntegrationTest
         $qrid = MerchantIntegration::generateRandomString();
         $partnerTxID = MerchantIntegration::generateRandomString();
 
-        $response = (object) [
-            'msgID'  => $msgID,
-            'qrcode' => $qrcode,
-            'txID'   => $txID,
-            'qrid'   => $qrid,
+        $params = new CreateQrCodeParams([
+            'amount'      => self::AMOUNT,
+            'currency'    => MerchantIntegrationOffline::SGD,
+            'msgID'       => $msgID,
+            'partnerTxID' => $partnerTxID,
+        ]);
+
+        $response = [
+            'status'  => 200,
+            'headers' => [],
+            'data'    => [
+                'expiryTime' => date('c'),
+                'msgID'      => $msgID,
+                'qrcode'     => $qrcode,
+                'qrid'       => $qrid,
+                'txID'       => $txID,
+            ],
         ];
 
-        $this->merchantIntegrationOffline->expects(static::once())->method('sendPostRequest')->willReturn(new Response(200, [], $response));
-        $posCreateQRCode = $this->merchantIntegrationOffline->posCreateQRCode($msgID, $partnerTxID, self::AMOUNT, MerchantIntegration::SGD);
+        $this->merchantIntegrationOffline->expects(static::once())->method('sendPostRequest')->willReturn(new CreateQrCodeResponse($response));
+        $createQrCode = $this->merchantIntegrationOffline->createQrCode($params);
 
-        static::assertSame($response, $posCreateQRCode->getBody());
+        static::assertInstanceOf(CreateQrCodeResponse::class, $createQrCode);
+        static::assertSame($msgID, $createQrCode->data->msgID);
     }
 
-    public function testPosCreateQRCodeException(): void
-    {
-        $this->merchantIntegrationOfflineException->expects(static::once())->method('getPartnerInfo')->will(static::throwException(new \Exception()));
-        $posCreateQRCode = $this->merchantIntegrationOfflineException->posCreateQRCode(MerchantIntegration::generateRandomString(), MerchantIntegration::generateRandomString(), self::AMOUNT, MerchantIntegration::SGD);
-
-        static::assertSame('Caught exception: ', $posCreateQRCode->getBody());
-    }
-
-    public function testPosPerformQRCode(): void
+    public function testGetRefundDetails(): void
     {
         $msgID = MerchantIntegration::generateRandomString();
         $txID = MerchantIntegration::generateRandomString();
         $partnerTxID = MerchantIntegration::generateRandomString();
 
-        $response = (object) [
-            'msgID'    => $msgID,
-            'txID'     => $txID,
-            'status'   => 'success',
-            'amount'   => self::AMOUNT,
-            'updated'  => 1657211215,
-            'currency' => MerchantIntegration::SGD,
+        $params = new GetTxnDetailsParams([
+            'currency'    => MerchantIntegration::SGD,
+            'msgID'       => $msgID,
+            'partnerTxID' => $partnerTxID,
+        ]);
+
+        $response = [
+            'status'  => 200,
+            'headers' => [],
+            'data'    => [
+                'amount'   => self::AMOUNT,
+                'currency' => MerchantIntegration::SGD,
+                'msgID'    => $msgID,
+                'status'   => 'success',
+                'txID'     => $txID,
+                'updated'  => 1657211215,
+            ],
         ];
 
-        $this->merchantIntegrationOffline->expects(static::once())->method('sendPostRequest')->willReturn(new Response(200, [], $response));
-        $posPerformQRCode = $this->merchantIntegrationOffline->posPerformQRCode($msgID, $partnerTxID, self::AMOUNT, MerchantIntegration::SGD, self::QR_CODE);
+        $this->merchantIntegrationOffline->expects(static::once())->method('sendGetRequest')->willReturn(new GetTxnDetailsResponse($response));
+        $getRefundDetails = $this->merchantIntegrationOffline->getRefundDetails($params);
 
-        static::assertSame($response, $posPerformQRCode->getBody());
+        static::assertInstanceOf(GetTxnDetailsResponse::class, $getRefundDetails);
+        static::assertSame($msgID, $getRefundDetails->data->msgID);
     }
 
-    public function testPosPerformQRCodeException(): void
-    {
-        $this->merchantIntegrationOfflineException->expects(static::once())->method('getPartnerInfo')->will(static::throwException(new \Exception()));
-        $posPerformQRCode = $this->merchantIntegrationOfflineException->posPerformQRCode(MerchantIntegration::generateRandomString(), MerchantIntegration::generateRandomString(), self::AMOUNT, MerchantIntegration::SGD, self::QR_CODE);
-
-        static::assertSame('Caught exception: ', $posPerformQRCode->getBody());
-    }
-
-    public function testPosCancel(): void
+    public function testGetTxnDetails(): void
     {
         $msgID = MerchantIntegration::generateRandomString();
+        $txID = MerchantIntegration::generateRandomString();
         $partnerTxID = MerchantIntegration::generateRandomString();
-        $origPartnerTxID = MerchantIntegration::generateRandomString();
-        $origTxID = MerchantIntegration::generateRandomString();
 
-        $response = null;
+        $params = new GetTxnDetailsParams([
+            'currency'    => MerchantIntegration::SGD,
+            'msgID'       => $msgID,
+            'partnerTxID' => $partnerTxID,
+        ]);
 
-        $this->merchantIntegrationOffline->expects(static::once())->method('sendPutRequest')->willReturn(new Response(200, [], $response));
-        $posCancel = $this->merchantIntegrationOffline->posCancel($msgID, $partnerTxID, $origPartnerTxID, $origTxID, MerchantIntegration::SGD);
+        $response = [
+            'status'  => 200,
+            'headers' => [],
+            'data'    => [
+                'amount'   => self::AMOUNT,
+                'currency' => MerchantIntegration::SGD,
+                'msgID'    => $msgID,
+                'status'   => 'success',
+                'txID'     => $txID,
+                'updated'  => 1657211215,
+            ],
+        ];
 
-        static::assertSame($response, $posCancel->getBody());
+        $this->merchantIntegrationOffline->expects(static::once())->method('sendGetRequest')->willReturn(new GetTxnDetailsResponse($response));
+        $getTxnDetails = $this->merchantIntegrationOffline->getTxnDetails($params);
+
+        static::assertInstanceOf(GetTxnDetailsResponse::class, $getTxnDetails);
+        static::assertSame($msgID, $getTxnDetails->data->msgID);
     }
 
-    public function testPosCancelException(): void
+    public function testPerformQrCode(): void
     {
-        $this->merchantIntegrationOfflineException->expects(static::once())->method('getPartnerInfo')->will(static::throwException(new \Exception()));
-        $posCancel = $this->merchantIntegrationOfflineException->posCancel(MerchantIntegration::generateRandomString(), MerchantIntegration::generateRandomString(), MerchantIntegration::generateRandomString(), MerchantIntegration::generateRandomString(), MerchantIntegration::SGD);
+        $msgID = MerchantIntegration::generateRandomString();
+        $txID = MerchantIntegration::generateRandomString();
+        $partnerTxID = MerchantIntegration::generateRandomString();
 
-        static::assertSame('Caught exception: ', $posCancel->getBody());
+        $params = new PerformQrCodeTxnParams([
+            'amount'      => self::AMOUNT,
+            'code'        => self::QR_CODE,
+            'currency'    => MerchantIntegrationOffline::SGD,
+            'msgID'       => $msgID,
+            'partnerTxID' => $partnerTxID,
+        ]);
+
+        $response = [
+            'status'  => 200,
+            'headers' => [],
+            'data'    => [
+                'amount'   => self::AMOUNT,
+                'currency' => MerchantIntegration::SGD,
+                'msgID'    => $msgID,
+                'status'   => 'success',
+                'txID'     => $txID,
+                'updated'  => 1657211215,
+            ],
+        ];
+
+        $this->merchantIntegrationOffline->expects(static::once())->method('sendPostRequest')->willReturn(new PerformQrCodeTxnResponse($response));
+        $performQrCode = $this->merchantIntegrationOffline->performQrCode($params);
+
+        static::assertInstanceOf(PerformQrCodeTxnResponse::class, $performQrCode);
+        static::assertSame($msgID, $performQrCode->data->msgID);
     }
 
-    public function testPosRefund(): void
+    public function testRefund(): void
     {
         $msgID = MerchantIntegration::generateRandomString();
         $txID = MerchantIntegration::generateRandomString();
@@ -127,89 +203,37 @@ final class MerchantIntegrationOfflineUnitTest extends MerchantIntegrationTest
         $partnerTxID = MerchantIntegration::generateRandomString();
         $origPartnerTxID = MerchantIntegration::generateRandomString();
 
-        $response = (object) [
-            'msgID'          => $msgID,
-            'txID'           => $txID,
-            'originTxID'     => $originTxID,
-            'status'         => 'success',
-            'description'    => '',
-            'additionalInfo' => ['amountBreakdown' => [
-                'paidAmount'           => self::AMOUNT,
-                'refundedChargeAmount' => self::AMOUNT,
-                'revokePayoutAmount'   => self::AMOUNT,
-            ]],
-            'msg' => '',
+        $params = new RefundTxnParams([
+            'amount'          => self::AMOUNT,
+            'currency'        => MerchantIntegration::SGD,
+            'msgID'           => $msgID,
+            'origPartnerTxID' => $origPartnerTxID,
+            'partnerTxID'     => $partnerTxID,
+            'reason'          => 'testing refund',
+        ]);
+
+        $response = [
+            'status'  => 200,
+            'headers' => [],
+            'data'    => [
+                'additionalInfo' => ['amountBreakdown' => [
+                    'paidAmount'           => self::AMOUNT,
+                    'refundedChargeAmount' => self::AMOUNT,
+                    'revokePayoutAmount'   => self::AMOUNT,
+                ]],
+                'description' => 'description',
+                'msg'         => 'msg',
+                'msgID'       => $msgID,
+                'originTxID'  => $originTxID,
+                'status'      => 'success',
+                'txID'        => $txID,
+            ],
         ];
 
-        $this->merchantIntegrationOffline->expects(static::once())->method('sendPutRequest')->willReturn(new Response(200, [], $response));
-        $posRefund = $this->merchantIntegrationOffline->posRefund($msgID, $partnerTxID, self::AMOUNT, MerchantIntegration::SGD, $origPartnerTxID, 'testing posRefund');
+        $this->merchantIntegrationOffline->expects(static::once())->method('sendPutRequest')->willReturn(new RefundTxnResponse($response));
+        $refund = $this->merchantIntegrationOffline->refund($params);
 
-        static::assertSame($response, $posRefund->getBody());
-    }
-
-    public function testPosRefundException(): void
-    {
-        $this->merchantIntegrationOfflineException->expects(static::once())->method('getPartnerInfo')->will(static::throwException(new \Exception()));
-        $posRefund = $this->merchantIntegrationOfflineException->posRefund(MerchantIntegration::generateRandomString(), MerchantIntegration::generateRandomString(), self::AMOUNT, MerchantIntegration::SGD, MerchantIntegration::generateRandomString(), 'testing posRefund');
-
-        static::assertSame('Caught exception: ', $posRefund->getBody());
-    }
-
-    public function testPosGetTxnStatus(): void
-    {
-        $msgID = MerchantIntegration::generateRandomString();
-        $txID = MerchantIntegration::generateRandomString();
-        $partnerTxID = MerchantIntegration::generateRandomString();
-
-        $response = (object) [
-            'msgID'    => $msgID,
-            'txID'     => $txID,
-            'status'   => 'success',
-            'amount'   => self::AMOUNT,
-            'updated'  => 1657211215,
-            'currency' => MerchantIntegration::SGD,
-        ];
-
-        $this->merchantIntegrationOffline->expects(static::once())->method('sendGetRequest')->willReturn(new Response(200, [], $response));
-        $posGetTxnStatus = $this->merchantIntegrationOffline->posGetTxnStatus($msgID, $partnerTxID, MerchantIntegration::SGD);
-
-        static::assertSame($response, $posGetTxnStatus->getBody());
-    }
-
-    public function testPosGetTxnStatusException(): void
-    {
-        $this->merchantIntegrationOfflineException->expects(static::once())->method('getPartnerInfo')->will(static::throwException(new \Exception()));
-        $posGetTxnStatus = $this->merchantIntegrationOfflineException->posGetTxnStatus(MerchantIntegration::generateRandomString(), MerchantIntegration::generateRandomString(), MerchantIntegration::SGD);
-
-        static::assertSame('Caught exception: ', $posGetTxnStatus->getBody());
-    }
-
-    public function testPosGetRefundStatus(): void
-    {
-        $msgID = MerchantIntegration::generateRandomString();
-        $txID = MerchantIntegration::generateRandomString();
-        $refundPartnerTxID = MerchantIntegration::generateRandomString();
-
-        $response = (object) [
-            'msgID'    => $msgID,
-            'txID'     => $txID,
-            'status'   => 'success',
-            'amount'   => self::AMOUNT,
-            'updated'  => 1657211215,
-            'currency' => MerchantIntegration::SGD,
-        ];
-
-        $this->merchantIntegrationOffline->expects(static::once())->method('sendGetRequest')->willReturn(new Response(200, [], $response));
-        $posGetRefundStatus = $this->merchantIntegrationOffline->posGetRefundStatus($msgID, $refundPartnerTxID, MerchantIntegration::SGD);
-
-        static::assertSame($response, $posGetRefundStatus->getBody());
-    }
-
-    public function testPosGetRefundStatusException(): void
-    {
-        $this->merchantIntegrationOfflineException->expects(static::once())->method('getPartnerInfo')->will(static::throwException(new \Exception()));
-        $posGetRefundStatus = $this->merchantIntegrationOfflineException->posGetRefundStatus(MerchantIntegration::generateRandomString(), MerchantIntegration::generateRandomString(), MerchantIntegration::SGD);
-
-        static::assertSame('Caught exception: ', $posGetRefundStatus->getBody());
+        static::assertInstanceOf(RefundTxnResponse::class, $refund);
+        static::assertSame($msgID, $refund->data->msgID);
     }
 }
