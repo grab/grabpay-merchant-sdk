@@ -1,21 +1,24 @@
 package unit;
 
+import com.merchantsdk.payment.Country;
 import com.merchantsdk.payment.MerchantIntegrationOffline;
-import com.merchantsdk.payment.service.AuthorizationService;
+import com.merchantsdk.payment.Utils;
+import com.merchantsdk.payment.config.EnvironmentType;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpPut;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-
+import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -25,16 +28,14 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 @ExtendWith(MockitoExtension.class)
 public class TestMockMerchantOffline {
-
     private static MerchantIntegrationOffline merchantIntegrationOffline;
-    private static AuthorizationService authorizationService;
 
-    private static String staging = "STG";
-    private static String country = "VN";
-    private static String partner_id = "partner-id";
-    private static String partner_secret = "partner-secret";
-    private static String merchant_id = "merchant-id";
-    private static String terminal_id = "terminal-id";
+    private static EnvironmentType env = EnvironmentType.STAGING;
+    private static Country country = Country.VIETNAM;
+    private static String partnerId = "partner-id";
+    private static String partnerSecret = "partner-secret";
+    private static String merchantId = "merchant-id";
+    private static String terminalId = "terminal-id";
 
     private static JSONObject metaInfo;
     private static JSONObject shipDetails;
@@ -42,16 +43,27 @@ public class TestMockMerchantOffline {
 
     private CloseableHttpResponse response = mock(CloseableHttpResponse.class);
 
-    @BeforeAll
-    public static void setUp() {
+    @Mock
+    CloseableHttpClient clientMock;
+
+    MockedStatic<HttpClients> httpClientsMock;
+
+    @BeforeEach
+    public void setup() throws Exception {
+        httpClientsMock = mockStatic(HttpClients.class);
+        when(HttpClients.createDefault()).thenReturn(clientMock);
+
+        when(response.getCode()).thenReturn(200, 300, 401);
+        when(response.getEntity())
+                .thenReturn(new StringEntity("{\"Body\":\"You are in right place\",\"request\":\"This_is_request\"}"));
+
         merchantIntegrationOffline = new MerchantIntegrationOffline(
-                staging,
+                env,
                 country,
-                partner_id,
-                partner_secret,
-                merchant_id,
-                terminal_id);
-        authorizationService = new AuthorizationService();
+                partnerId,
+                partnerSecret,
+                merchantId,
+                terminalId);
 
         shipDetails = new JSONObject();
         shipDetails.put("shippingDetails", "Some country");
@@ -64,91 +76,84 @@ public class TestMockMerchantOffline {
         metaInfo.put("metaInfo", new JSONObject[] { shipDetails, items });
     }
 
-    @Mock
-    CloseableHttpClient clientMock;
-
-    @BeforeEach
-    public void createMock() throws Exception {
-        merchantIntegrationOffline.getOfflineTransaction().getTransaction().setClient(clientMock);
-
-        when(response.getCode()).thenReturn(200, 300, 401);
-        when(response.getEntity())
-                .thenReturn(new StringEntity("{\"Body\":\"You are in right place\",\"request\":\"This_is_request\"}"));
+    @AfterEach
+    public void tearDown() {
+        httpClientsMock.close();
     }
 
     @Test
-    public void testPosCreateQRCode() throws Exception {
+    public void testCreateQrCode() throws Exception {
         when(clientMock.execute(any(HttpPost.class))).thenReturn(response);
 
-        String partnerId = authorizationService.getRandomString(32);
+        String partnerId = Utils.getRandomString(32);
         long amount = 2000;
         String currency = "VND";
 
         // test null msgID
-        JSONObject jsonResponse = merchantIntegrationOffline.posCreateQRCode(null, partnerId, amount, currency);
+        JSONObject jsonResponse = merchantIntegrationOffline.createQrCode(null, partnerId, amount, currency);
 
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
 
-        String msgID = authorizationService.generateMsgID(null);
-        jsonResponse = merchantIntegrationOffline.posCreateQRCode(msgID, partnerId, amount, currency);
+        String msgID = Utils.getRandomString(32);
+        jsonResponse = merchantIntegrationOffline.createQrCode(msgID, partnerId, amount, currency);
 
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
     }
 
     @Test
-    public void testPosPerformQRCode() throws Exception {
+    public void testPerformQrCode() throws Exception {
         when(clientMock.execute(any(HttpPost.class))).thenReturn(response);
 
-        String partnerTxId = authorizationService.getRandomString(32);
+        String partnerTxId = Utils.getRandomString(32);
         long amount = 2000;
         String currency = "VND";
         String code = "code";
-        JSONObject jsonResponse = merchantIntegrationOffline.posPerformQRCode(null, partnerTxId, amount, currency,
+        JSONObject jsonResponse = merchantIntegrationOffline.performQrCode(null, partnerTxId, amount, currency,
                 code);
 
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
 
-        String msgID = authorizationService.generateMsgID(null);
-        jsonResponse = merchantIntegrationOffline.posPerformQRCode(msgID, partnerTxId, amount, currency, code);
+        String msgID = Utils.getRandomString(32);
+        jsonResponse = merchantIntegrationOffline.performQrCode(msgID, partnerTxId, amount, currency, code);
 
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
     }
 
     @Test
-    public void testPosCancel() throws Exception {
+    public void testCancel() throws Exception {
         when(clientMock.execute(any(HttpPut.class))).thenReturn(response);
 
-        String partnerTxId = authorizationService.getRandomString(32);
+        String partnerTxId = Utils.getRandomString(32);
         String origPartnerTxID = "origPartnerTxID";
         String origTxID = "origTxID";
         String currency = "VND";
-        JSONObject jsonResponse = merchantIntegrationOffline.posCancel(null, partnerTxId, origPartnerTxID, origTxID,
+        JSONObject jsonResponse = merchantIntegrationOffline.cancel(null, partnerTxId, origPartnerTxID, origTxID,
                 currency);
 
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
 
-        String msgID = authorizationService.generateMsgID(null);
-        jsonResponse = merchantIntegrationOffline.posCancel(msgID, partnerTxId, origPartnerTxID, origTxID, currency);
+        String msgID = Utils.getRandomString(32);
+        jsonResponse = merchantIntegrationOffline.cancel(msgID, partnerTxId, origPartnerTxID, origTxID, currency);
 
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
     }
 
     @Test
-    public void testPosRefund() throws Exception {
+    public void testRefund() throws Exception {
         when(clientMock.execute(any(HttpPut.class))).thenReturn(response);
 
         String refundPartnerTxID = "refundPartnerTxID";
         String origPartnerTxID = "origPartnerTxID";
         long amount = 2000;
         String currency = "VND";
-        String msgID = authorizationService.generateMsgID(null);
-        JSONObject jsonResponse = merchantIntegrationOffline.posRefund(msgID, refundPartnerTxID, amount, currency,
+        String msgID = Utils.getRandomString(32);
+        JSONObject jsonResponse = merchantIntegrationOffline.refund(msgID, refundPartnerTxID, amount, currency,
                 origPartnerTxID, null);
 
         assertNotNull(jsonResponse);
@@ -156,26 +161,26 @@ public class TestMockMerchantOffline {
     }
 
     @Test
-    public void testPosGetTxnDetails() throws Exception {
+    public void testGetTxnDetails() throws Exception {
         when(clientMock.execute(any(HttpGet.class))).thenReturn(response);
 
-        String partnerID = authorizationService.getRandomString(32);
+        String partnerID = Utils.getRandomString(32);
         String currency = "VND";
-        String msgID = authorizationService.generateMsgID(null);
-        JSONObject jsonResponse = merchantIntegrationOffline.posGetTxnDetails(msgID, partnerID, currency);
+        String msgID = Utils.getRandomString(32);
+        JSONObject jsonResponse = merchantIntegrationOffline.getTxnDetails(msgID, partnerID, currency);
 
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
     }
 
     @Test
-    public void testPosGetRefundDetails() throws Exception {
+    public void testGetRefundDetails() throws Exception {
         when(clientMock.execute(any(HttpGet.class))).thenReturn(response);
 
-        String refundPartnerTxID = authorizationService.getRandomString(32);
+        String refundPartnerTxID = Utils.getRandomString(32);
         String currency = "VND";
-        String msgID = authorizationService.generateMsgID(null);
-        JSONObject jsonResponse = merchantIntegrationOffline.posGetRefundDetails(msgID, refundPartnerTxID, currency);
+        String msgID = Utils.getRandomString(32);
+        JSONObject jsonResponse = merchantIntegrationOffline.getRefundDetails(msgID, refundPartnerTxID, currency);
 
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
