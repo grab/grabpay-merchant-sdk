@@ -1,0 +1,356 @@
+{
+  "values": [
+    {
+      "title": "License Year",
+      "value": "2022",
+      "lookup": [
+        {
+          "path": "*/LICENSE",
+          "prefix": "© ",
+          "suffix": " GrabTaxi"
+        },
+        {
+          "path": "LICENSE",
+          "prefix": "© ",
+          "suffix": " GrabTaxi"
+        },
+        {
+          "path": "*/README.md",
+          "prefix": "© ",
+          "suffix": " GrabTaxi"
+        },
+        {
+          "path": "README.md",
+          "prefix": "© ",
+          "suffix": " GrabTaxi"
+        }
+      ]
+    },
+    {
+      "title": "SDK Version Number",
+      "value": "2.0.0",
+      "lookup": [
+        {
+          "path": "Go/config/config_test.go",
+          "prefix": "SdkVersion:\\s+\"",
+          "suffix": "\","
+        },
+        {
+          "path": "Go/config/config.go",
+          "prefix": "sdkVersion\\s+=\\s+\"",
+          "suffix": "\"\\s+"
+        },
+        {
+          "path": "Java/build.gradle",
+          "prefix": "version\\s+'",
+          "suffix": "'"
+        },
+        {
+          "path": "Java/build.gradle",
+          "prefix": "version\\s+=\\s+'",
+          "suffix": "'"
+        },
+        {
+          "path": "Java/src/main/java/com/merchantsdk/payment/config/SdkEnvironment.java",
+          "prefix": "String SDK_VERSION\\s+=\\s+\"",
+          "suffix": "\";"
+        },
+        {
+          "path": "Net/src/Net.csproj",
+          "prefix": "\\<Version\\>",
+          "suffix": "\\</Version\\>"
+        },
+        {
+          "path": "Net/src/Public/MerchantConfiguration.cs",
+          "prefix": "SdkVersion\\s+\\{\\s+get;\\s+\\}\\s+=\\s\"",
+          "suffix": "\";"
+        },
+        {
+          "path": "Node/package.json",
+          "prefix": "\"version\":\\s+\"",
+          "suffix": "\","
+        },
+        {
+          "path": "Node/src/configs/Version.ts",
+          "prefix": "const SDK_VERSION = '",
+          "suffix": "';"
+        },
+        {
+          "path": "Node/src/test/unit/__snapshots__/MerchantIntegrationOffline.test.ts.snap",
+          "prefix": "\"X-Sdk-Version\":\\s+\"",
+          "suffix": "\","
+        },
+        {
+          "path": "Node/src/test/unit/__snapshots__/MerchantIntegrationOnline.test.ts.snap",
+          "prefix": "\"X-Sdk-Version\":\\s+\"",
+          "suffix": "\","
+        },
+        {
+          "path": "Php/src/MerchantIntegration.php",
+          "prefix": "const SDK_VERSION = '",
+          "suffix": "';"
+        },
+        {
+          "path": "Python/src/Config.py",
+          "prefix": "self.sdkVersion = \"",
+          "suffix": "\""
+        }
+      ]
+    },
+    {
+      "title": "SDK Signature String",
+      "value": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
+      "lookup": [
+        {
+          "path": "Go/config/config_test.go",
+          "prefix": "SdkSignature:\\s+\"",
+          "suffix": "\","
+        },
+        {
+          "path": "Go/config/config.go",
+          "prefix": "sdkSignature\\s+=\\s+\"",
+          "suffix": "\"\\s+"
+        },
+        {
+          "path": "Java/src/main/java/com/merchantsdk/payment/config/SdkEnvironment.java",
+          "prefix": "String SDK_SIGNATURE\\s+=\\s+\"",
+          "suffix": "\";"
+        },
+        {
+          "path": "Net/src/Public/MerchantConfiguration.cs",
+          "prefix": "SdkSignature\\s+\\{\\s+get;\\s+\\}\\s+=\\s\"",
+          "suffix": "\";"
+        },
+        {
+          "path": "Node/src/configs/Version.ts",
+          "prefix": "const SDK_SIGNATURE = '",
+          "suffix": "';"
+        },
+        {
+          "path": "Node/src/test/unit/__snapshots__/MerchantIntegrationOffline.test.ts.snap",
+          "prefix": "\"X-Sdk-Signature\":\\s+\"",
+          "suffix": "\","
+        },
+        {
+          "path": "Node/src/test/unit/__snapshots__/MerchantIntegrationOnline.test.ts.snap",
+          "prefix": "\"X-Sdk-Signature\":\\s+\"",
+          "suffix": "\","
+        },
+        {
+          "path": "Php/src/MerchantIntegration.php",
+          "prefix": "const SDK_SIGNATURE = '",
+          "suffix": "';"
+        },
+        {
+          "path": "Python/src/Config.py",
+          "prefix": "self.sdkSignature\\s+=\\s+\\(\\s+\"",
+          "suffix": "\""
+        }
+      ]
+    },
+    {
+      "title": "Moca Partner Production Domain",
+      "value": "partner-gw.moca.vn",
+      "lookup": [
+        {
+          "path": "Go/config/config_test.go",
+          "prefix": "expCountry:\\s+\"VN\",\\s+expEnv:\\s+\"PRD\",\\s+expDomain:\\s+\"https://",
+          "suffix": "\","
+        },
+        {
+          "path": "Go/config/config.go",
+          "prefix": "vnProdDomain\\s+=\\s+\"https://",
+          "suffix": "\""
+        },
+        {
+          "path": "Java/src/main/java/com/merchantsdk/payment/config/SdkEnvironment.java",
+          "prefix": "EnvCountryPair\\(EnvironmentType\\.PRODUCTION, Country\\.VIETNAM\\),\\s+new EnvironmentSet\\(\"https://",
+          "suffix": "\"\\)\\);"
+        },
+        {
+          "path": "Net/src/Public/MerchantConfiguration.cs",
+          "prefix": "HostVnPrd\\s+\\{\\s+get;\\s\\}\\s+=\\s+\"https://",
+          "suffix": "\";"
+        },
+        {
+          "path": "Net/test/TestMerchantConfiguration.cs",
+          "prefix": "vn_prd_domain\\s+=\\s+\"https://",
+          "suffix": "\";"
+        },
+        {
+          "path": "Node/src/configs/Environment.ts",
+          "prefix": "VN_PRD_HOST\\s+=\\s+'https://",
+          "suffix": "';"
+        },
+        {
+          "path": "Php/src/MerchantIntegration.php",
+          "prefix": "const MOCA_PRD_API_URL = 'https://",
+          "suffix": "';"
+        },
+        {
+          "path": "Php/tests/MerchantIntegrationTest.php",
+          "prefix": "const MOCA_PRD_API_URL = 'https://",
+          "suffix": "';"
+        },
+        {
+          "path": "Python/src/Config.py",
+          "prefix": "VN_PRD_HOST\\s+=\\s+\"https://",
+          "suffix": "\"\\s+"
+        }
+      ]
+    },
+    {
+      "title": "Moca Partner Staging Domain",
+      "value": "stg-paysi.moca.vn",
+      "lookup": [
+        {
+          "path": "Go/config/config_test.go",
+          "prefix": "expCountry:\\s+\"VN\",\\s+expEnv:\\s+\"STG\",\\s+expDomain:\\s+\"https://",
+          "suffix": "\","
+        },
+        {
+          "path": "Go/config/config.go",
+          "prefix": "vnStgDomain\\s+=\\s+\"https://",
+          "suffix": "\""
+        },
+        {
+          "path": "Java/src/main/java/com/merchantsdk/payment/config/SdkEnvironment.java",
+          "prefix": "EnvCountryPair\\(EnvironmentType\\.STAGING, Country\\.VIETNAM\\),\\s+new EnvironmentSet\\(\"https://",
+          "suffix": "\"\\)\\);"
+        },
+        {
+          "path": "Net/src/Public/MerchantConfiguration.cs",
+          "prefix": "HostVnStg\\s+\\{\\s+get;\\s\\}\\s+=\\s+\"https://",
+          "suffix": "\";"
+        },
+        {
+          "path": "Net/test/TestMerchantConfiguration.cs",
+          "prefix": "vn_stg_domain\\s+=\\s+\"https://",
+          "suffix": "\";"
+        },
+        {
+          "path": "Node/src/configs/Environment.ts",
+          "prefix": "VN_STG_HOST\\s+=\\s+'https://",
+          "suffix": "';"
+        },
+        {
+          "path": "Php/src/MerchantIntegration.php",
+          "prefix": "const MOCA_STG_API_URL = 'https://",
+          "suffix": "';"
+        },
+        {
+          "path": "Php/tests/MerchantIntegrationTest.php",
+          "prefix": "const MOCA_STG_API_URL = 'https://",
+          "suffix": "';"
+        },
+        {
+          "path": "Python/src/Config.py",
+          "prefix": "VN_STG_HOST\\s+=\\s+\"https://",
+          "suffix": "\"\\s+"
+        }
+      ]
+    },
+    {
+      "title": "Regional Partner Production Domain",
+      "value": "partner-api.grab.com",
+      "lookup": [
+        {
+          "path": "Go/config/config_test.go",
+          "prefix": "expCountry:\\s+\"COUNTRYX\",\\s+expEnv:\\s+\"PRD\",\\s+expDomain:\\s+\"https://",
+          "suffix": "\","
+        },
+        {
+          "path": "Go/config/config.go",
+          "prefix": "globalProdDomain\\s+=\\s+\"https://",
+          "suffix": "\""
+        },
+        {
+          "path": "Java/src/main/java/com/merchantsdk/payment/config/SdkEnvironment.java",
+          "prefix": "put\\(EnvironmentType\\.PRODUCTION,\\s+new EnvironmentSet\\(\"https://",
+          "suffix": "\"\\)\\);"
+        },
+        {
+          "path": "Net/src/Public/MerchantConfiguration.cs",
+          "prefix": "HostRegionalPrd\\s+\\{\\s+get;\\s\\}\\s+=\\s+\"https://",
+          "suffix": "\";"
+        },
+        {
+          "path": "Net/test/TestMerchantConfiguration.cs",
+          "prefix": "oth_prd_domain\\s+=\\s+\"https://",
+          "suffix": "\";"
+        },
+        {
+          "path": "Node/src/configs/Environment.ts",
+          "prefix": "REGIONAL_PRD_HOST\\s+=\\s+'https://",
+          "suffix": "';"
+        },
+        {
+          "path": "Php/src/MerchantIntegration.php",
+          "prefix": "const REGIONAL_PRD_API_URL = 'https://",
+          "suffix": "';"
+        },
+        {
+          "path": "Php/tests/MerchantIntegrationTest.php",
+          "prefix": "const REGIONAL_PRD_API_URL = 'https://",
+          "suffix": "';"
+        },
+        {
+          "path": "Python/src/Config.py",
+          "prefix": "REGIONAL_PRD_HOST\\s+=\\s+\"https://",
+          "suffix": "\"\\s+"
+        }
+      ]
+    },
+    {
+      "title": "Regional Partner Staging Domain",
+      "value": "partner-api.stg-myteksi.com",
+      "lookup": [
+        {
+          "path": "Go/config/config_test.go",
+          "prefix": "expCountry:\\s+\"COUNTRYX\",\\s+expEnv:\\s+\"STG\",\\s+expDomain:\\s+\"https://",
+          "suffix": "\","
+        },
+        {
+          "path": "Go/config/config.go",
+          "prefix": "globalStgDomain\\s+=\\s+\"https://",
+          "suffix": "\""
+        },
+        {
+          "path": "Java/src/main/java/com/merchantsdk/payment/config/SdkEnvironment.java",
+          "prefix": "put\\(EnvironmentType\\.STAGING,\\s+new EnvironmentSet\\(\"https://",
+          "suffix": "\"\\)\\);"
+        },
+        {
+          "path": "Net/src/Public/MerchantConfiguration.cs",
+          "prefix": "HostRegionalStg\\s+\\{\\s+get;\\s\\}\\s+=\\s+\"https://",
+          "suffix": "\";"
+        },
+        {
+          "path": "Net/test/TestMerchantConfiguration.cs",
+          "prefix": "oth_stg_domain\\s+=\\s+\"https://",
+          "suffix": "\";"
+        },
+        {
+          "path": "Node/src/configs/Environment.ts",
+          "prefix": "REGIONAL_STG_HOST\\s+=\\s+'https://",
+          "suffix": "';"
+        },
+        {
+          "path": "Php/src/MerchantIntegration.php",
+          "prefix": "const REGIONAL_STG_API_URL = 'https://",
+          "suffix": "';"
+        },
+        {
+          "path": "Php/tests/MerchantIntegrationTest.php",
+          "prefix": "const REGIONAL_STG_API_URL = 'https://",
+          "suffix": "';"
+        },
+        {
+          "path": "Python/src/Config.py",
+          "prefix": "REGIONAL_STG_HOST\\s+=\\s+\"https://",
+          "suffix": "\"\\s+"
+        }
+      ]
+    }
+  ]
+}

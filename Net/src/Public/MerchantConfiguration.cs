@@ -19,6 +19,10 @@ namespace Net.Public
         public Dictionary<string, string> PathDictionary { get; }
         public string SdkVersion { get; } = "2.0.0";
         public string SdkSignature { get; } = "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7";
+        private string HostVnStg { get; } = "https://stg-paysi.moca.vn";
+        private string HostVnPrd { get; } = "https://partner-gw.moca.vn";
+        private string HostRegionalStg { get; } = "https://partner-api.stg-myteksi.com";
+        private string HostRegionalPrd { get; } = "https://partner-api.grab.com";
 
         public MerchantConfiguration(
             string partnerId = null,
@@ -102,22 +106,22 @@ namespace Net.Public
             {
                 if (country.ToUpper() == "VN")
                 {
-                    return "https://partner-gw.moca.vn";
+                    return this.HostVnPrd;
                 }
                 else
                 {
-                    return "https://partner-api.grab.com";
+                    return this.HostRegionalPrd;
                 }
             }
             else
             {
                 if (country.ToUpper() == "VN")
                 {
-                    return "https://stg-paysi.moca.vn";
+                    return this.HostVnStg;
                 }
                 else
                 {
-                    return "https://partner-api.stg-myteksi.com";
+                    return this.HostRegionalStg;
                 }
 
             }
