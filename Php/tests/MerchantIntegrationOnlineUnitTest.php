@@ -42,7 +42,7 @@ final class MerchantIntegrationOnlineUnitTest extends MerchantIntegrationTest
         ;
 
         $this->merchantIntegrationOnline = $mockBuilder
-            ->onlyMethods(['sendGetRequest', 'sendPostRequest', 'sendPutRequest'])
+            ->onlyMethods(['sendGetRequest', 'sendPostRequest', 'sendPutRequest', 'sendRawPostRequest'])
             ->getMock()
         ;
     }
@@ -300,7 +300,7 @@ final class MerchantIntegrationOnlineUnitTest extends MerchantIntegrationTest
             ],
         ];
 
-        $this->merchantIntegrationOnline->expects(static::once())->method('sendPostRequest')->willReturn(new Oauth2TokenResponse($response));
+        $this->merchantIntegrationOnline->expects(static::once())->method('sendRawPostRequest')->willReturn(new Oauth2TokenResponse($response));
         $oauth2Token = $this->merchantIntegrationOnline->oauth2Token($params);
 
         static::assertInstanceOf(Oauth2TokenResponse::class, $oauth2Token);
