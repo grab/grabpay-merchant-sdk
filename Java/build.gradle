@@ -54,7 +54,13 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    testLogging.showStandardStreams = true
+
     environment = env.allVariables
+	testLogging {
+		events "failed"
+		exceptionFormat "full"
+	}
 }
 
 java {

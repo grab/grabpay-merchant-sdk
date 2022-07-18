@@ -1,5 +1,7 @@
 package com.merchantsdk.payment;
 
+import com.merchantsdk.payment.config.EnvironmentType;
+import com.merchantsdk.payment.config.PosConfig;
 import com.merchantsdk.payment.service.OfflineTransaction;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.json.JSONObject;
@@ -8,44 +10,44 @@ public class MerchantIntegrationOffline extends MerchantIntegration {
 
     private final OfflineTransaction offlineTransaction;
 
-    public MerchantIntegrationOffline(String environment, String country, String partner_id, String partner_secret,
-            String merchant_id, String terminal_id) {
-        super(environment, country, partner_id, partner_secret, merchant_id, terminal_id, "", "", "");
-        this.offlineTransaction = getOfflineTransaction();
+    public MerchantIntegrationOffline(EnvironmentType env, Country country, String partnerId, String partnerSecret,
+            String merchantId, String terminalId) {
+        super(new PosConfig(env, country, partnerId, partnerSecret, merchantId, terminalId));
+        this.offlineTransaction = new OfflineTransaction((PosConfig) this.getConfig());
     }
 
-    public JSONObject posCreateQRCode(String msgID, String partnerTxID, long amount, String currency) {
-        CloseableHttpResponse response = this.offlineTransaction.apiCreateQrCode(msgID, partnerTxID, amount, currency);
+    public JSONObject createQrCode(String msgID, String partnerTxID, long amount, String currency) {
+        CloseableHttpResponse response = this.offlineTransaction.createQrCode(msgID, partnerTxID, amount, currency);
         return processResponse(response);
     }
 
-    public JSONObject posPerformQRCode(String msgID, String partnerTxID, long amount, String currency, String code) {
-        CloseableHttpResponse response = this.offlineTransaction.apiPosPerformTxn(msgID, partnerTxID, amount, currency,
+    public JSONObject performQrCode(String msgID, String partnerTxID, long amount, String currency, String code) {
+        CloseableHttpResponse response = this.offlineTransaction.performTxn(msgID, partnerTxID, amount, currency,
                 code);
         return processResponse(response);
     }
 
-    public JSONObject posCancel(String msgID, String partnerTxID, String origPartnerTxID, String origTxID,
+    public JSONObject cancel(String msgID, String partnerTxID, String origPartnerTxID, String origTxID,
             String currency) {
-        CloseableHttpResponse response = this.offlineTransaction.apiPosCancel(msgID, partnerTxID, origPartnerTxID,
+        CloseableHttpResponse response = this.offlineTransaction.cancelTxn(msgID, partnerTxID, origPartnerTxID,
                 origTxID, currency);
         return processResponse(response);
     }
 
-    public JSONObject posRefund(String msgID, String refundPartnerTxID, long amount, String currency,
+    public JSONObject refund(String msgID, String partnerTxID, long amount, String currency,
             String origPartnerTxID, String description) {
-        CloseableHttpResponse response = this.offlineTransaction.apiPosRefund(msgID, refundPartnerTxID, amount,
+        CloseableHttpResponse response = this.offlineTransaction.refundTxn(msgID, partnerTxID, amount,
                 currency, origPartnerTxID, description);
         return processResponse(response);
     }
 
-    public JSONObject posGetTxnDetails(String msgID, String partnerTxID, String currency) {
-        CloseableHttpResponse response = this.offlineTransaction.apiPosGetTxnStatus(msgID, partnerTxID, currency);
+    public JSONObject getTxnDetails(String msgID, String partnerTxID, String currency) {
+        CloseableHttpResponse response = this.offlineTransaction.getTxnStatus(msgID, partnerTxID, currency);
         return processResponse(response);
     }
 
-    public JSONObject posGetRefundDetails(String msgID, String refundPartnerTxID, String currency) {
-        CloseableHttpResponse response = this.offlineTransaction.apiPosGetRefundStatus(msgID, refundPartnerTxID,
+    public JSONObject getRefundDetails(String msgID, String partnerTxID, String currency) {
+        CloseableHttpResponse response = this.offlineTransaction.getRefundStatus(msgID, partnerTxID,
                 currency);
         return processResponse(response);
     }

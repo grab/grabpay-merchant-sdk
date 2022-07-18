@@ -1,26 +1,31 @@
 package com.merchantsdk.payment.service;
 
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-import com.merchantsdk.payment.config.Config;
-import com.merchantsdk.payment.config.PathUtility;
-import org.json.JSONObject;
-
+import java.util.HashMap;
 import java.util.Map;
 
-public class OfflineTransaction {
-    private static final String type = "OFFLINE";
-    private Config config;
-    private Transaction transaction;
-    private Map<PathUtility, String> countryURL;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 
-    public OfflineTransaction() {
+import com.merchantsdk.payment.Utils;
+import com.merchantsdk.payment.config.PosConfig;
+import com.merchantsdk.payment.config.ApiUrl.ApiEndpoint;
+
+import org.json.JSONObject;
+
+public class OfflineTransaction {
+    private PosConfig config;
+    private Requester requester;
+
+    public OfflineTransaction(PosConfig config) {
+        this.config = config;
+        this.requester = new Requester(config);
     }
 
-    public OfflineTransaction(Config config, Map<PathUtility, String> countryURL) {
-        this();
-        this.config = config;
-        this.countryURL = countryURL;
-        this.transaction = new Transaction();
+    private JSONObject configurePayload(JSONObject requestBody) {
+        JSONObject additionalPayload = new JSONObject();
+        additionalPayload.put("msgID", Utils.getRandomString(32));
+        additionalPayload.put("grabID", config.getMerchantId());
+        additionalPayload.put("terminalID", config.getTerminalId());
+        return Utils.mergeJsonObjects(additionalPayload, requestBody);
     }
 
     /**
@@ -29,92 +34,101 @@ public class OfflineTransaction {
      * @param
      * @return json object of response
      */
-    public CloseableHttpResponse apiCreateQrCode(String msgID, String partnerTxID, long amount, String currency) {
+    public CloseableHttpResponse createQrCode(String msgID, String partnerTxID, long amount, String currency) {
         JSONObject requestBody = new JSONObject();
         requestBody.put("amount", amount);
         requestBody.put("currency", currency);
         requestBody.put("partnerTxID", partnerTxID);
+        if (msgID != null) {
+            requestBody.put("msgID", msgID);
+        }
 
-        String path = this.countryURL.get(PathUtility.PATH_POS_CREATE_QR_CODE);
-        return this.transaction.sendRequest(this.config, "POST", path, "application/json", requestBody, null, type,
-                msgID);
+        requestBody = configurePayload(requestBody);
+
+        String path = this.config.getApiUrl(ApiEndpoint.POS_CREATE_QR_CODE);
+        return this.requester.sendHmacRequest("POST", path, null, null, requestBody);
     }
 
-    public CloseableHttpResponse apiPosPerformTxn(String msgID, String partnerTxID, long amount, String currency,
+    public CloseableHttpResponse performTxn(String msgID, String partnerTxID, long amount, String currency,
             String code) {
         JSONObject requestBody = new JSONObject();
         requestBody.put("amount", amount);
         requestBody.put("currency", currency);
         requestBody.put("partnerTxID", partnerTxID);
         requestBody.put("code", code);
+        if (msgID != null) {
+            requestBody.put("msgID", msgID);
+        }
 
-        String path = this.countryURL.get(PathUtility.PATH_POS_PERFORM_TRANSACTION);
-        return this.transaction.sendRequest(this.config, "POST", path, "application/json", requestBody, null, type,
-                msgID);
+        requestBody = configurePayload(requestBody);
+
+        String path = this.config.getApiUrl(ApiEndpoint.POS_PERFORM_TRANSACTION);
+        return this.requester.sendHmacRequest("POST", path, null, null, requestBody);
     }
 
-    public CloseableHttpResponse apiPosCancel(String msgID, String partnerTxID, String origPartnerTxID, String origTxID,
+    public CloseableHttpResponse cancelTxn(String msgID, String partnerTxID, String origPartnerTxID, String origTxID,
             String currency) {
         JSONObject requestBody = new JSONObject();
         requestBody.put("currency", currency);
         requestBody.put("origTxID", origTxID);
         requestBody.put("partnerTxID", partnerTxID);
+        if (msgID != null) {
+            requestBody.put("msgID", msgID);
+        }
 
-        String path = this.countryURL.get(PathUtility.PATH_POS_CANCEL_TRANSACTION);
+        requestBody = configurePayload(requestBody);
+
+        String path = this.config.getApiUrl(ApiEndpoint.POS_CANCEL_TRANSACTION);
         path = path.replace("{origPartnerTxID}", origPartnerTxID);
-        return this.transaction.sendRequest(this.config, "PUT", path, "application/json", requestBody, null, type,
-                msgID);
+        return this.requester.sendHmacRequest("PUT", path, null, null, requestBody);
     }
 
-    public CloseableHttpResponse apiPosRefund(String msgID, String refundPartnerTxID, long amount, String currency,
+    public CloseableHttpResponse refundTxn(String msgID, String partnerTxID, long amount, String currency,
             String origPartnerTxID, String description) {
         JSONObject requestBody = new JSONObject();
         requestBody.put("currency", currency);
         requestBody.put("amount", amount);
         requestBody.put("reason", description);
-        requestBody.put("partnerTxID", refundPartnerTxID);
+        requestBody.put("partnerTxID", partnerTxID);
+        if (msgID != null) {
+            requestBody.put("msgID", msgID);
+        }
 
-        String path = this.countryURL.get(PathUtility.PATH_POS_REFUND_TRANSACTION);
+        requestBody = configurePayload(requestBody);
+
+        String path = this.config.getApiUrl(ApiEndpoint.POS_REFUND_TRANSACTION);
         path = path.replace("{origPartnerTxID}", origPartnerTxID);
-        return this.transaction.sendRequest(this.config, "PUT", path, "application/json", requestBody, null, type,
-                msgID);
+        return this.requester.sendHmacRequest("PUT", path, null, null, requestBody);
     }
 
-    public CloseableHttpResponse apiPosGetTxnStatus(String msgID, String partnerTxID, String currency) {
-        String path = this.countryURL.get(PathUtility.PATH_POS_TRANSACTION_DETAILS);
-        path = path.replace("{partnerTxID}", partnerTxID).replace("{currency}", currency).replace("{posTxType}", "P2M")
-                .replace("{msgID}", msgID);
-        return this.transaction.sendRequest(this.config, "GET", path, "application/json", null, null, type, msgID);
+    public CloseableHttpResponse getTxnStatus(String msgID, String partnerTxID, String currency) {
+        String path = this.config.getApiUrl(ApiEndpoint.POS_TRANSACTION_DETAILS);
+        path = path.replace("{partnerTxID}", partnerTxID);
+
+        Map<String, String> query = new HashMap<String, String>();
+        query.put("currency", currency);
+        query.put("txType", "P2M");
+        if (msgID == null) {
+            query.put("msgID", Utils.getRandomString(32));
+        } else {
+            query.put("msgID", msgID);
+        }
+
+        return this.requester.sendHmacRequest("GET", path, query, null);
     }
 
-    public CloseableHttpResponse apiPosGetRefundStatus(String msgID, String refundPartnerTxID, String currency) {
-        String path = this.countryURL.get(PathUtility.PATH_POS_TRANSACTION_DETAILS);
-        path = path.replace("{partnerTxID}", refundPartnerTxID).replace("{currency}", currency)
-                .replace("{posTxType}", "Refund").replace("{msgID}", msgID);
-        return this.transaction.sendRequest(this.config, "GET", path, "application/json", null, null, type, msgID);
-    }
+    public CloseableHttpResponse getRefundStatus(String msgID, String partnerTxID, String currency) {
+        String path = this.config.getApiUrl(ApiEndpoint.POS_TRANSACTION_DETAILS);
+        path = path.replace("{partnerTxID}", partnerTxID);
 
-    public Config getConfig() {
-        return config;
-    }
-
-    public void setConfig(Config config) {
-        this.config = config;
-    }
-
-    public Transaction getTransaction() {
-        return transaction;
-    }
-
-    public void setTransaction(Transaction transaction) {
-        this.transaction = transaction;
-    }
-
-    public Map<PathUtility, String> getCountryURL() {
-        return countryURL;
-    }
-
-    public void setCountryURL(Map<PathUtility, String> countryURL) {
-        this.countryURL = countryURL;
+        Map<String, String> query = new HashMap<String, String>();
+        query.put("currency", currency);
+        query.put("txType", "Refund");
+        if (msgID == null) {
+            query.put("msgID", Utils.getRandomString(32));
+        } else {
+            query.put("msgID", msgID);
+        }
+        return this.requester.sendHmacRequest("GET", path, query, null);
     }
 }

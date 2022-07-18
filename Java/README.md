@@ -14,15 +14,15 @@ For using this SDK, you might copy all files in [src](./src) folder and paste it
 
 ## Configuring the SDK
 
-- `stage` : String : either "PRD" or "STG"
-- `country` : String : [ISO 3166-1 Alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) country code of the merchant location.
-- `partner_id` : String - Unique ID for a partner. Retrieve from Developer Home
-- `partner_secret` : String - Secret key for a partner. Retrieve from Developer Home
-- `merchant_id` : String - Retrieve from Developer Home
-- `terminal_id` : String - Retrieve from Developer Home **(POS only)**
-- `client_id` : String - Retrieve from Developer Home **(OTC only)**
-- `client_secret` : String - Retrieve from Developer Home **(OTC only)**
-- `redirect_url` : String - The url configured in Developer Home **(OTC only)**
+- `env` : EnvironmentType : either production or staging, values provided through the `EnvironmentType` enum.
+- `country` : Country : [ISO 3166-1 Alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) country code of the merchant location. Values provided through the `Country` enum
+- `partnerId` : String - Unique ID for a partner. Retrieve from Developer Home
+- `partnerSecret` : String - Secret key for a partner. Retrieve from Developer Home
+- `merchantId` : String - Retrieve from Developer Home
+- `terminalId` : String - Retrieve from Developer Home **(POS only)**
+- `clientId` : String - Retrieve from Developer Home **(OTC only)**
+- `clientSecret` : String - Retrieve from Developer Home **(OTC only)**
+- `redirectUrl` : String - The url configured in Developer Home **(OTC only)**
 
 ## Details for APIs
 
@@ -31,7 +31,6 @@ For using this SDK, you might copy all files in [src](./src) folder and paste it
 ```java
 String partnerTxID = "partnerTxID";
 String partnerGroupTxID = "partnerGroupTxID";
-String refundPartnerTxID = "refundPartnerTxID";
 long amount = 2000;
 String currency = "CUR";
 String description = "this is testing";
@@ -45,41 +44,41 @@ String msgID = "msgID";
 ### Configuring for One-Time Charge
 
 ```java
-MerchantIntegrationOnline merchantIntegrationOnline = new MerchantIntegrationOnline(stage, country, partner_id, partner_secret, merchant_id, client_id, client_secret, redirect_url)
+MerchantIntegrationOnline merchantIntegrationOnline = new MerchantIntegrationOnline(EnvirionmentType.STAGING, Country.MALAYSIA, partnerId, partnerSecret, merchantId, clientId, clientSecret, redirectUrl);
 ```
 
 ### One-Time Charge (OTC) API
 
 The values for `metaInfo`, `items`, `shippingDetails`, `hidePaymentMethods`, `state` are left as `null` in the examples below as they are optional parameters.
 
-1. onaChargeInit
+1. chargeInit
 
 ```java
-merchantIntegrationOnline.onaChargeInit(partnerTxID, partnerGroupTxID, amount, currency, description, metaInfo, items, shippingDetails, hidePaymentMethods)
+merchantIntegrationOnline.chargeInit(partnerTxID, partnerGroupTxID, amount, currency, description, metaInfo, items, shippingDetails, hidePaymentMethods)
 ```
 
 **Example request:**
 
 ```java
-JSONObject response = merchantIntegrationOnline.onaChargeInit(partnerTxID, partnerGroupTxID, amount, currency, codeVerifier, description, null, null, null, null);
+JSONObject response = merchantIntegrationOnline.chargeInit(partnerTxID, partnerGroupTxID, amount, currency, codeVerifier, description, null, null, null, null);
 ```
 
-2. onaCreateWebUrl
+2. generateWebUrl
 
 ```java
-merchantIntegrationOnline.onaCreateWebUrl(partnerTxID, partnerGroupTxID, amount, currency, codeVerifier, description, metaInfo, items, shippingDetails, hidePaymentMethods, state)
+merchantIntegrationOnline.generateWebUrl(partnerTxID, partnerGroupTxID, amount, currency, codeVerifier, description, metaInfo, items, shippingDetails, hidePaymentMethods, state)
 ```
 
 **Example request:**
 
 ```java
-String response = merchantIntegrationOnline.onaCreateWebUrl(partnerTxID, partnerGroupTxID, amount, currency, codeVerifier, description, null, null, null, null, null);
+JSONObject response = merchantIntegrationOnline.generateWebUrl(partnerTxID, partnerGroupTxID, amount, currency, codeVerifier, description, null, null, null, null, null);
 ```
 
-3. onaOAuth2Token
+3. getOAuth2Token
 
 ```java
-merchantIntegrationOnline.onaOAuth2Token(String partnerTxID, String code)
+merchantIntegrationOnline.getOAuth2Token(String code, String codeVerifier);
 ```
 
 Merchant get **code** in redirected url after successfully pay
@@ -88,79 +87,79 @@ Merchant get **code** in redirected url after successfully pay
 
 ```java
 String code = "a09a6c1da7c843519d03978d659c60d8" ;
-JSONObject response = merchantIntegrationOnline.onaOAuth2Token(partnerTxID, code);
+JSONObject response = merchantIntegrationOnline.getOAuth2Token(code, codeVerifier);
 ```
 
-4. onaChargeComplete
+4. chargeComplete
 
 ```java
-merchantIntegrationOnline.onaChargeComplete(String partnerTxID,String accessToken)
+merchantIntegrationOnline.chargeComplete(String partnerTxID, String accessToken)
 ```
 
-Merchant get **accessToken** from **_onaOAuth2Token_** API response
+Merchant get **accessToken** from **_getOAuth2Token_** API response
 
 **Example request:**
 
 ```java
-JSONObject response = merchantIntegrationOnline.onaChargeComplete(partnerTxID, accessToken);
+JSONObject response = merchantIntegrationOnline.chargeComplete(partnerTxID, accessToken);
 ```
 
-5. onaGetChargeStatus
+5. getChargeStatus
 
 ```java
-merchantIntegrationOnline.onaGetChargeStatus(String partnerTxID,String currency,String accessToken)
+merchantIntegrationOnline.getChargeStatus(String partnerTxID, String currency, String accessToken)
 ```
 
-Merchant get **accessToken** from **_onaOAuth2Token_** API response
+Merchant get **accessToken** from **_getOAuth2Token_** API response
 
 **Example request:**
 
 ```java
-JSONObject response = merchantIntegrationOnline.onaGetChargeStatus(partnerTxID,currency, accessToken);
+JSONObject response = merchantIntegrationOnline.getChargeStatus(partnerTxID, currency, accessToken);
 ```
 
-6. onaRefund
+6. Refund
 
 ```java
-merchantIntegrationOnline.onaRefund(String refundPartnerTxID, String partnerGroupTxID,long amount,String currency,String txID,String description,String accessToken)
+merchantIntegrationOnline.refund(String partnerTxID, String partnerGroupTxID,long amount,String currency, String txID, String description, String accessToken)
 ```
 
-Merchant get **accessToken** from **_onaOAuth2Token_** API response
+Merchant get **accessToken** from **_getOAuth2Token_** API response
 
-Merchant get **txID** from **_onaChargeComplete_** or **_onaGetChargeStatus_** API response
+Merchant get **txID** from **_chargeComplete_** or **_getChargeStatus_** API response
 
 **Example request:**
 
 ```java
-JSONObject response = merchantIntegrationOnline.onaRefund(refundPartnerTxID, partnerGroupTxID, amount, currency, txID, description, accessToken);
+JSONObject response = merchantIntegrationOnline.refund(partnerTxID, partnerGroupTxID, amount, currency, txID, description, accessToken);
 ```
 
-7. onaGetRefundStatus
+7. getRefundStatus
 
 ```java
-merchantIntegrationOnline.onaGetRefundStatus(refundPartnerTxID, currency, accessToken)
+merchantIntegrationOnline.getRefundStatus(partnerTxID, currency, accessToken)
 ```
 
-Merchant get **accessToken** from **_onaOAuth2Token_** API response
+Merchant get **accessToken** from **_getOAuth2Token_** API response
 
 **Example request:**
 
 ```java
-JSONObject response = merchantIntegrationOnline.onaGetRefundStatus(refundPartnerTxID, accessToken, currency);
+JSONObject response = merchantIntegrationOnline.getRefundStatus(partnerTxID, accessToken, currency);
 ```
 
-8. onaGetOTCStatus
+8. getOTCStatus
 
 ```java
-merchantIntegrationOnline.onaGetOTCStatus(String partnerTxID, accessToken, String currency)
+merchantIntegrationOnline.getOTCStatus(String partnerTxID, accessToken, String currency)
 ```
 
-Merchant get **accessToken** from **_onaOAuth2Token_** API response
+Merchant get **accessToken** from **_getOAuth2Token_** API response
 
 **Example request:**
 
 ```java
-JSONObject response = merchantIntegrationOnline.onaGetOTCStatus(partnerTxID, accessToken, currency);
+JSONObject response = merchantIntegrationOnline.getOTCStatus(partnerTxID, accessToken, currency);
 ```
 
 ## Point of Sale (POS) Transactions
@@ -173,76 +172,76 @@ MerchantIntegrationOffline merchantIntegrationOffline = new MerchantIntegrationO
 
 ### Point of Sale (POS) API
 
-1. posCreateQRCode
+1. createQrCode
 
 ```java
-merchantIntegrationOffline.posCreateQRCode(String msgID, String partnerTxID, long amount, String currency)
+merchantIntegrationOffline.createQrCode(String msgID, String partnerTxID, long amount, String currency)
 ```
 
 **Example request:**
 
 ```java
-JSONObject response = merchantIntegrationOffline.posCreateQRCode(msgID, partnerTxID, amount, currency);
+JSONObject response = merchantIntegrationOffline.createQrCode(msgID, partnerTxID, amount, currency);
 ```
 
-2. posPerformQRCode
+2. performQrCode
 
 ```java
-merchantIntegrationOffline.posPerformQRCode(String msgID, String partnerTxID, long amount, String currency, String code)
-```
-
-**Example request:**
-
-```java
-JSONObject response = merchantIntegrationOffline.posPerformQRCode(msgID, partnerTxID, amount, currency, code);
-```
-
-3. posCancel
-
-```java
-merchantIntegrationOffline.posCancel(String msgID, String partnerTxID,String origPartnerTxID,String origTxID,String currency)
+merchantIntegrationOffline.performQrCode(String msgID, String partnerTxID, long amount, String currency, String code)
 ```
 
 **Example request:**
 
 ```java
-JSONObject response = merchantIntegrationOffline.posCancel(msgID, partnerTxID, origPartnerTxID, origTxID, currency);
+JSONObject response = merchantIntegrationOffline.performQrCode(msgID, partnerTxID, amount, currency, code);
 ```
 
-4. posRefund
+3. cancel
 
 ```java
-merchantIntegrationOffline.posRefund(msgID, refundPartnerTxID, amount, currency, origPartnerTxID, description)
-```
-
-**Example request:**
-
-```java
-JSONObject response = merchantIntegrationOffline.posRefund(msgID, refundPartnerTxID, amount, currency, origPartnerTxID, description);
-```
-
-5. posGetTxnDetails
-
-```java
-merchantIntegrationOffline.posGetTxnDetails(String msgID, String partnerTxID, String currency)
+merchantIntegrationOffline.cancel(String msgID, String partnerTxID,String origPartnerTxID,String origTxID,String currency)
 ```
 
 **Example request:**
 
 ```java
-JSONObject response = merchantIntegrationOffline.posGetTxnDetails(msgID, partnerTxID, currency);
+JSONObject response = merchantIntegrationOffline.cancel(msgID, partnerTxID, origPartnerTxID, origTxID, currency);
 ```
 
-6. posGetRefundDetails
+4. refund
 
 ```java
-merchantIntegrationOffline.posGetRefundDetails(String msgID, String refundPartnerTxID, String currency)
+merchantIntegrationOffline.refund(msgID, partnerTxID, amount, currency, origPartnerTxID, description)
 ```
 
 **Example request:**
 
 ```java
-JSONObject response = merchantIntegrationOffline.posGetRefundDetails(msgID, refundPartnerTxID, currency);
+JSONObject response = merchantIntegrationOffline.refund(msgID, partnerTxID, amount, currency, origPartnerTxID, description);
+```
+
+5. getTxnDetails
+
+```java
+merchantIntegrationOffline.getTxnDetails(String msgID, String partnerTxID, String currency)
+```
+
+**Example request:**
+
+```java
+JSONObject response = merchantIntegrationOffline.getTxnDetails(msgID, partnerTxID, currency);
+```
+
+6. getRefundDetails
+
+```java
+merchantIntegrationOffline.getRefundDetails(String msgID, String partnerTxID, String currency)
+```
+
+**Example request:**
+
+```java
+JSONObject response = merchantIntegrationOffline.getRefundDetails(msgID, partnerTxID, currency);
 ```
 
 ## License

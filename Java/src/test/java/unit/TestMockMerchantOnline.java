@@ -1,20 +1,23 @@
 package unit;
 
+import com.merchantsdk.payment.Country;
 import com.merchantsdk.payment.MerchantIntegrationOnline;
-import com.merchantsdk.payment.service.AuthorizationService;
+import com.merchantsdk.payment.Utils;
+import com.merchantsdk.payment.config.EnvironmentType;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-
+import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -26,16 +29,15 @@ import static org.mockito.Mockito.*;
 public class TestMockMerchantOnline {
 
     private static MerchantIntegrationOnline merchantIntegrationOnline;
-    private static AuthorizationService authorizationService;
 
-    private static String staging = "STG";
-    private static String country = "VN";
-    private static String partner_id = "partner-id";
-    private static String partner_secret = "partner-secret";
-    private static String merchant_id = "merchant-id";
-    private static String client_id = "client-id";
-    private static String client_secret = "client-secret";
-    private static String redirect_uri = "redirect-url";
+    private static EnvironmentType env = EnvironmentType.STAGING;
+    private static Country country = Country.VIETNAM;
+    private static String partnerId = "partner-id";
+    private static String partnerSecret = "partner-secret";
+    private static String merchantId = "merchant-id";
+    private static String clientId = "client-id";
+    private static String clientSecret = "client-secret";
+    private static String redirectUri = "redirect-url";
 
     private static JSONObject metaInfo;
     private static JSONObject shipDetails;
@@ -43,18 +45,29 @@ public class TestMockMerchantOnline {
 
     private CloseableHttpResponse response = mock(CloseableHttpResponse.class);
 
-    @BeforeAll
-    public static void setUp() {
+    @Mock
+    CloseableHttpClient clientMock;
+
+    MockedStatic<HttpClients> httpClientsMock;
+
+    @BeforeEach
+    public void createMock() {
+        httpClientsMock = mockStatic(HttpClients.class);
+        when(HttpClients.createDefault()).thenReturn(clientMock);
+
+        when(response.getCode()).thenReturn(200, 300, 401);
+        when(response.getEntity())
+                .thenReturn(new StringEntity("{\"Body\":\"You are in right place\",\"request\":\"This_is_request\"}"));
+
         merchantIntegrationOnline = new MerchantIntegrationOnline(
-                staging,
+                env,
                 country,
-                partner_id,
-                partner_secret,
-                merchant_id,
-                client_id,
-                client_secret,
-                redirect_uri);
-        authorizationService = new AuthorizationService();
+                partnerId,
+                partnerSecret,
+                merchantId,
+                clientId,
+                clientSecret,
+                redirectUri);
 
         shipDetails = new JSONObject();
         shipDetails.put("shippingDetails", "Some country");
@@ -71,29 +84,22 @@ public class TestMockMerchantOnline {
         metaInfo.put("metaInfo", new JSONObject[] { shipDetails, item1 });
     }
 
-    @Mock
-    CloseableHttpClient clientMock;
-
-    @BeforeEach
-    public void createMock() {
-        merchantIntegrationOnline.getOnlineTransaction().getTransaction().setClient(clientMock);
-
-        when(response.getCode()).thenReturn(200, 300, 401);
-        when(response.getEntity())
-                .thenReturn(new StringEntity("{\"Body\":\"You are in right place\",\"request\":\"This_is_request\"}"));
+    @AfterEach
+    public void tearDown() {
+        httpClientsMock.close();
     }
 
     @Test
-    public void testOnAChargeInit() throws Exception {
+    public void testChargeInit() throws Exception {
         when(clientMock.execute(any(HttpPost.class))).thenReturn(response);
 
         long amount = 2000;
         String currency = "VND";
         String description = "this is testing";
-        String partnerTxID = authorizationService.getRandomString(32);
-        String partnerGroupTxID = authorizationService.getRandomString(32);
+        String partnerTxID = Utils.getRandomString(32);
+        String partnerGroupTxID = Utils.getRandomString(32);
 
-        JSONObject jsonResponse = merchantIntegrationOnline.onaChargeInit(partnerTxID, partnerGroupTxID, amount,
+        JSONObject jsonResponse = merchantIntegrationOnline.chargeInit(partnerTxID, partnerGroupTxID, amount,
                 currency, description, null, items, null, null);
 
         assertNotNull(jsonResponse);
@@ -101,7 +107,7 @@ public class TestMockMerchantOnline {
 
         // test metainfo, shipping != null, different currency
         currency = "SG";
-        jsonResponse = merchantIntegrationOnline.onaChargeInit(partnerTxID, partnerGroupTxID, amount, currency,
+        jsonResponse = merchantIntegrationOnline.chargeInit(partnerTxID, partnerGroupTxID, amount, currency,
                 description, metaInfo, items, shipDetails, null);
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
@@ -109,26 +115,26 @@ public class TestMockMerchantOnline {
     }
 
     @Test
-    public void testOnaOAuth2Token() throws Exception {
+    public void testGetOAuth2Token() throws Exception {
         when(clientMock.execute(any(HttpPost.class))).thenReturn(response);
 
-        String partnerTxID = authorizationService.getRandomString(32);
-        String code = authorizationService.getRandomString(32);
+        String code = Utils.getRandomString(32);
+        String codeVerifier = Utils.getRandomString(32);
 
-        JSONObject jsonResponse = merchantIntegrationOnline.onaOAuth2Token(partnerTxID, code);
+        JSONObject jsonResponse = merchantIntegrationOnline.getOAuth2Token(code, codeVerifier);
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
         assertEquals("This_is_request", jsonResponse.get("request"));
     }
 
     @Test
-    public void testOnaChargeComplete() throws Exception {
+    public void testChargeComplete() throws Exception {
         when(clientMock.execute(any(HttpPost.class))).thenReturn(response);
 
-        String partnerTxID = authorizationService.getRandomString(32);
-        String access_token = authorizationService.getRandomString(32);
+        String partnerTxID = Utils.getRandomString(32);
+        String access_token = Utils.getRandomString(32);
 
-        JSONObject jsonResponse = merchantIntegrationOnline.onaChargeComplete(partnerTxID, access_token);
+        JSONObject jsonResponse = merchantIntegrationOnline.chargeComplete(partnerTxID, access_token);
 
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
@@ -136,38 +142,38 @@ public class TestMockMerchantOnline {
     }
 
     @Test
-    public void testOnaGetChargeStatus() throws Exception {
+    public void testGetChargeStatus() throws Exception {
         when(clientMock.execute(any(HttpGet.class))).thenReturn(response);
 
         String currency = "VND";
-        String partnerTxID = authorizationService.getRandomString(32);
-        String access_token = authorizationService.getRandomString(32);
+        String partnerTxID = Utils.getRandomString(32);
+        String access_token = Utils.getRandomString(32);
 
-        JSONObject jsonResponse = merchantIntegrationOnline.onaGetChargeStatus(partnerTxID, currency, access_token);
+        JSONObject jsonResponse = merchantIntegrationOnline.getChargeStatus(partnerTxID, currency, access_token);
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
         assertEquals("This_is_request", jsonResponse.get("request"));
 
         currency = "SG";
-        jsonResponse = merchantIntegrationOnline.onaGetChargeStatus(partnerTxID, currency, access_token);
+        jsonResponse = merchantIntegrationOnline.getChargeStatus(partnerTxID, currency, access_token);
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
         assertEquals("This_is_request", jsonResponse.get("request"));
     }
 
     @Test
-    public void testOnaRefund() throws Exception {
+    public void testRefund() throws Exception {
         when(clientMock.execute(any(HttpPost.class))).thenReturn(response);
 
         long amount = 2000;
         String currency = "VND";
         String description = "this is testing";
-        String refundPartnerTxID = authorizationService.getRandomString(32);
-        String partnerGroupTxID = authorizationService.getRandomString(32);
-        String txID = authorizationService.getRandomString(14);
-        String access_token = authorizationService.getRandomString(32);
+        String refundPartnerTxID = Utils.getRandomString(32);
+        String partnerGroupTxID = Utils.getRandomString(32);
+        String txID = Utils.getRandomString(14);
+        String access_token = Utils.getRandomString(32);
 
-        JSONObject jsonResponse = merchantIntegrationOnline.onaRefund(refundPartnerTxID, partnerGroupTxID, amount,
+        JSONObject jsonResponse = merchantIntegrationOnline.refund(refundPartnerTxID, partnerGroupTxID, amount,
                 currency, txID, description, access_token);
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
@@ -176,7 +182,7 @@ public class TestMockMerchantOnline {
         // different currency
         currency = "SG";
         amount = 21341234;
-        jsonResponse = merchantIntegrationOnline.onaRefund(refundPartnerTxID, partnerGroupTxID, amount, currency, txID,
+        jsonResponse = merchantIntegrationOnline.refund(refundPartnerTxID, partnerGroupTxID, amount, currency, txID,
                 description, access_token);
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
@@ -184,37 +190,37 @@ public class TestMockMerchantOnline {
     }
 
     @Test
-    public void testOnaRefundStatus() throws Exception {
+    public void testGetRefundStatus() throws Exception {
         when(clientMock.execute(any(HttpGet.class))).thenReturn(response);
 
         String currency = "VND";
-        String partnerTxID = authorizationService.getRandomString(32);
-        String access_token = authorizationService.getRandomString(32);
+        String partnerTxID = Utils.getRandomString(32);
+        String access_token = Utils.getRandomString(32);
 
-        JSONObject jsonResponse = merchantIntegrationOnline.onaGetRefundStatus(partnerTxID, currency, access_token);
+        JSONObject jsonResponse = merchantIntegrationOnline.getRefundStatus(partnerTxID, currency, access_token);
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
 
         currency = "SG";
-        jsonResponse = merchantIntegrationOnline.onaGetRefundStatus(partnerTxID, currency, access_token);
+        jsonResponse = merchantIntegrationOnline.getRefundStatus(partnerTxID, currency, access_token);
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
         assertEquals(2, jsonResponse.length());
     }
 
     @Test
-    public void testOnaGetOTCStatus() throws Exception {
+    public void testGetOtcStatus() throws Exception {
         when(clientMock.execute(any(HttpGet.class))).thenReturn(response);
 
         String currency = "VND";
-        String partnerTxID = authorizationService.getRandomString(32);
+        String partnerTxID = Utils.getRandomString(32);
 
-        JSONObject jsonResponse = merchantIntegrationOnline.onaGetOTCStatus(partnerTxID, currency);
+        JSONObject jsonResponse = merchantIntegrationOnline.getOtcStatus(partnerTxID, currency);
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
 
         currency = "SG";
-        jsonResponse = merchantIntegrationOnline.onaGetOTCStatus(partnerTxID, currency);
+        jsonResponse = merchantIntegrationOnline.getOtcStatus(partnerTxID, currency);
         assertNotNull(jsonResponse);
         assertEquals("You are in right place", jsonResponse.get("Body"));
     }

@@ -1,8 +1,9 @@
 package integration.vn;
 
-import com.merchantsdk.payment.config.ApiUrl;
-import com.merchantsdk.payment.config.Config;
-import com.merchantsdk.payment.service.AuthorizationService;
+import com.merchantsdk.payment.Country;
+import com.merchantsdk.payment.Utils;
+import com.merchantsdk.payment.config.EnvironmentType;
+import com.merchantsdk.payment.config.PosConfig;
 import com.merchantsdk.payment.service.OfflineTransaction;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.core5.http.HttpEntity;
@@ -10,17 +11,17 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 public class TestOfflineTransaction {
-    private static AuthorizationService authorizationService;
     private static OfflineTransaction offlineTransaction;
-    private static Config config;
+    private static PosConfig config;
 
-    private static final String staging = "STG";
-    private static final String country = "VN";
+    private static final EnvironmentType staging = EnvironmentType.STAGING;
+    private static final Country country = Country.VIETNAM;
     private static final String partner_id = System.getenv("VN_STG_POS_PARTNER_ID");
     private static final String partner_secret = System.getenv("VN_STG_POS_PARTNER_SECRET");
     private static final String merchant_id = System.getenv("VN_STG_POS_MERCHANT_ID");
@@ -28,46 +29,40 @@ public class TestOfflineTransaction {
 
     @BeforeAll
     public static void setUp() {
-        config = new Config(
+        config = new PosConfig(
                 staging,
                 country,
                 partner_id,
                 partner_secret,
                 merchant_id,
-                terminal_id,
-                "",
-                "",
-                "");
-        config.setGrab_id(merchant_id);
-        offlineTransaction = new OfflineTransaction(config, new ApiUrl().getURL(config.getCountry()));
-        authorizationService = new AuthorizationService();
+                terminal_id);
+        offlineTransaction = new OfflineTransaction(config);
     }
 
     @Test
     public void testOfflineTransaction() throws Exception {
-        String partnerTxID = "partner-" + authorizationService.getRandomString(24);
-        String msg = authorizationService.getRandomString(32);
-        String msgID = authorizationService.generateMD5(msg);
+        String partnerTxID = "partner-" + Utils.getRandomString(24);
+        String msgID = Utils.getRandomString(32);
 
         long amount = 10000;
-        CloseableHttpResponse qrCode = offlineTransaction.apiCreateQrCode(msgID, partnerTxID, amount, "VND");
+        CloseableHttpResponse qrCode = offlineTransaction.createQrCode(msgID, partnerTxID, amount, "VND");
 
-        assert qrCode.getCode() == 200;
+        assertEquals(qrCode.getCode(), 200);
 
         HttpEntity responseEntity = qrCode.getEntity();
         String responseString = EntityUtils.toString(responseEntity, StandardCharsets.UTF_8);
         JSONObject responseBody = new JSONObject(responseString);
         Set<String> keys = responseBody.keySet();
-        assert keys.contains("msgID");
-        assert keys.contains("qrcode");
-        assert keys.contains("txID");
-        assert keys.contains("qrid");
-        assert keys.contains("expiryTime");
+        assertTrue(keys.contains("msgID"));
+        assertTrue(keys.contains("qrcode"));
+        assertTrue(keys.contains("txID"));
+        assertTrue(keys.contains("qrid"));
+        assertTrue(keys.contains("expiryTime"));
 
-        CloseableHttpResponse getTx = offlineTransaction.apiPosGetTxnStatus(msgID, partnerTxID, "VND");
+        CloseableHttpResponse getTx = offlineTransaction.getTxnStatus(msgID, partnerTxID, "VND");
         assert getTx.getCode() >= 400;
 
-        CloseableHttpResponse refundGetTx = offlineTransaction.apiPosGetTxnStatus(msgID, partnerTxID, "VND");
+        CloseableHttpResponse refundGetTx = offlineTransaction.getTxnStatus(msgID, partnerTxID, "VND");
         assert refundGetTx.getCode() >= 400;
     }
 }
