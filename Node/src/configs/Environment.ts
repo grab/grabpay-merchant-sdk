@@ -4,23 +4,28 @@ export type EnvironmentSet = {
   baseUrl: string;
 };
 
+const VN_STG_HOST = 'https://stg-paysi.moca.vn';
+const VN_PRD_HOST = 'https://partner-gw.moca.vn';
+const REGIONAL_STG_HOST = 'https://partner-api.stg-myteksi.com';
+const REGIONAL_PRD_HOST = 'https://partner-api.grab.com';
+
 const definedEnvs: Partial<Record<TCountry, Record<TEnvironment, EnvironmentSet>>> = {
   VN: {
     STG: {
-      baseUrl: 'https://stg-paysi.moca.vn',
+      baseUrl: VN_STG_HOST,
     },
     PRD: {
-      baseUrl: 'https://partner-gw.moca.vn',
+      baseUrl: VN_PRD_HOST,
     },
   },
 };
 
 const fallbackEnvironment: Record<TEnvironment, EnvironmentSet> = {
   STG: {
-    baseUrl: 'https://partner-api.stg-myteksi.com',
+    baseUrl: REGIONAL_STG_HOST,
   },
   PRD: {
-    baseUrl: 'https://partner-api.grab.com',
+    baseUrl: REGIONAL_PRD_HOST,
   },
 };
 

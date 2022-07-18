@@ -1,5 +1,11 @@
 import json
 
+VN_PRD_HOST = "https://partner-gw.moca.vn"
+VN_STG_HOST = "https://stg-paysi.moca.vn"
+
+REGIONAL_PRD_HOST = "https://partner-api.grab.com"
+REGIONAL_STG_HOST = "https://partner-api.stg-myteksi.com"
+
 
 class Config:
     def __init__(
@@ -34,15 +40,15 @@ class Config:
         if is_prod:
             # This to get the which domain can runing on their country
             if is_vietnam:
-                self.url = "https://partner-gw.moca.vn"
+                self.url = VN_PRD_HOST
             else:
-                self.url = "https://partner-api.grab.com"
+                self.url = REGIONAL_PRD_HOST
         else:
             # This to get the which domain can runing on their country
             if is_vietnam:
-                self.url = "https://stg-paysi.moca.vn"
+                self.url = VN_STG_HOST
             else:
-                self.url = "https://partner-api.stg-myteksi.com"
+                self.url = REGIONAL_STG_HOST
 
         if is_vietnam:
             # online path
