@@ -32,7 +32,6 @@ class MerchantIntegrationOffline extends MerchantIntegration
     {
         parent::__construct($environment, $country, $partnerID, $partnerSecret, $merchantID);
 
-        $this->type = self::TYPE_OFFLINE;
         $this->terminalID = $terminalID;
 
         // Setup API paths
@@ -174,5 +173,41 @@ class MerchantIntegrationOffline extends MerchantIntegration
         ];
 
         return $this->sendPutRequest(RefundTxnResponse::class, $url, $requestBody);
+    }
+
+    /**
+     * Prepare GET request API path.
+     * For offline, we need to append grabID and terminalID to all GET requests.
+     *
+     * @param string $apiPath API path
+     */
+    protected function prepareGetRequestPath(string $apiPath): string
+    {
+        $url_parts = parse_url($apiPath);
+        parse_str($url_parts['query'], $url_parts_query_array);
+
+        return $url_parts['path'] . '?' . http_build_query(array_merge($url_parts_query_array, $this->getIds()));
+    }
+
+    /**
+     * Prepare request body.
+     * For offline, we need to append grabID and terminalID to all GET requests.
+     *
+     * @param array $requestBody Request body
+     */
+    protected function prepareRequestBody(array $requestBody): array
+    {
+        return array_merge($requestBody, $this->getIds());
+    }
+
+    /**
+     * Return grabID and terminalID to be added to GET request path and POST/PUT request body.
+     */
+    private function getIds(): array
+    {
+        return [
+            'grabID'     => $this->merchantID,
+            'terminalID' => $this->terminalID,
+        ];
     }
 }

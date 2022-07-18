@@ -13,196 +13,182 @@ use GrabPay\Merchant\Models\Response;
 abstract class MerchantIntegration
 {
     /**
-     * Constant for header application/x-www-form-urlencoded
+     * Constant for header application/x-www-form-urlencoded.
      *
      * @var string
      */
     public const HEADER_APPLICATION_FORM = 'application/x-www-form-urlencoded';
 
     /**
-     * Constant for header application/json
+     * Constant for header application/json.
      *
      * @var string
      */
     public const HEADER_APPLICATION_JSON = 'application/json';
 
     /**
-     * Constant for Indonesia (ID)
+     * Constant for Indonesia (ID).
      *
      * @var string
      */
     public const ID = 'ID';
 
     /**
-     * Constant for Indonesia Rupiah (IDR)
+     * Constant for Indonesia Rupiah (IDR).
      *
      * @var string
      */
     public const IDR = 'IDR';
 
     /**
-     * Constant for Cambodia (KH)
+     * Constant for Cambodia (KH).
      *
      * @var string
      */
     public const KH = 'KH';
 
     /**
-     * Constant for Cambodia Riel (KHR)
+     * Constant for Cambodia Riel (KHR).
      *
      * @var string
      */
     public const KHR = 'KHR';
 
     /**
-     * Constant for method GET
+     * Constant for method GET.
      *
      * @var string
      */
     public const METHOD_GET = 'GET';
 
     /**
-     * Constant for method POST
+     * Constant for method POST.
      *
      * @var string
      */
     public const METHOD_POST = 'POST';
 
     /**
-     * Constant for method PUT
+     * Constant for method PUT.
      *
      * @var string
      */
     public const METHOD_PUT = 'PUT';
 
     /**
-     * Constant for Myanmar (MM)
+     * Constant for Myanmar (MM).
      *
      * @var string
      */
     public const MM = 'MM';
 
     /**
-     * Constant for Myanmar Kyat (MMK)
+     * Constant for Myanmar Kyat (MMK).
      *
      * @var string
      */
     public const MMK = 'MMK';
 
     /**
-     * Constant for Malaysia (MY)
+     * Constant for Malaysia (MY).
      *
      * @var string
      */
     public const MY = 'MY';
 
     /**
-     * Constant for Malaysia Ringgit (MYR)
+     * Constant for Malaysia Ringgit (MYR).
      *
      * @var string
      */
     public const MYR = 'MYR';
 
     /**
-     * Constant for Philippines (PH)
+     * Constant for Philippines (PH).
      *
      * @var string
      */
     public const PH = 'PH';
 
     /**
-     * Constant for Philippines Peso (PHP)
+     * Constant for Philippines Peso (PHP).
      *
      * @var string
      */
     public const PHP = 'PHP';
 
     /**
-     * Constant for production (PRD)
+     * Constant for production (PRD).
      *
      * @var string
      */
     public const PRODUCTION = 'PRD';
 
     /**
-     * Constant for SDK language
+     * Constant for SDK language.
      *
      * @var string
      */
     public const SDK_LANGUAGE = 'PHP';
 
     /**
-     * Constant for SDK signature
+     * Constant for SDK signature.
      *
      * @var string
      */
     public const SDK_SIGNATURE = '6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7';
 
     /**
-     * Constant for SDK version
+     * Constant for SDK version.
      *
      * @var string
      */
     public const SDK_VERSION = '2.0.0';
 
     /**
-     * Constant for Singapore (SG)
+     * Constant for Singapore (SG).
      *
      * @var string
      */
     public const SG = 'SG';
 
     /**
-     * Constant for Singapore Dollars (SGD)
+     * Constant for Singapore Dollars (SGD).
      *
      * @var string
      */
     public const SGD = 'SGD';
 
     /**
-     * Constant for staging (STG)
+     * Constant for staging (STG).
      *
      * @var string
      */
     public const STAGING = 'STG';
 
     /**
-     * Constant for Thailand (TH)
+     * Constant for Thailand (TH).
      *
      * @var string
      */
     public const TH = 'TH';
 
     /**
-     * Constant for Thailand Baht (THB)
+     * Constant for Thailand Baht (THB).
      *
      * @var string
      */
     public const THB = 'THB';
 
     /**
-     * Constant for offline payment aka POS
-     *
-     * @var string
-     */
-    public const TYPE_OFFLINE = 'OFFLINE';
-
-    /**
-     * Constant for online payment aka ONA
-     *
-     * @var string
-     */
-    public const TYPE_ONLINE = 'ONLINE';
-
-    /**
-     * Constant for Vietnam (VN)
+     * Constant for Vietnam (VN).
      *
      * @var string
      */
     public const VN = 'VN';
 
     /**
-     * Constant for Vietnam Dong (VND)
+     * Constant for Vietnam Dong (VND).
      *
      * @var string
      */
@@ -237,14 +223,14 @@ abstract class MerchantIntegration
     protected const MOCA_PARTNERS_V1_PATH = '/mocapay/partners/v1';
 
     /**
-     * Constant for Moca Production API URL
+     * Constant for Moca Production API URL.
      *
      * @var string
      */
     protected const MOCA_PRD_API_URL = 'https://partner-gw.moca.vn';
 
     /**
-     * Constant for Moca Staging API URL
+     * Constant for Moca Staging API URL.
      *
      * @var string
      */
@@ -265,14 +251,14 @@ abstract class MerchantIntegration
     protected const REGIONAL_PARTNER_V2_PATH = '/grabpay/partner/v2';
 
     /**
-     * Constant for Regional Production API URL
+     * Constant for Regional Production API URL.
      *
      * @var string
      */
     protected const REGIONAL_PRD_API_URL = 'https://partner-api.grab.com';
 
     /**
-     * Constant for Regional Staging API URL
+     * Constant for Regional Staging API URL.
      *
      * @var string
      */
@@ -369,9 +355,9 @@ abstract class MerchantIntegration
      * @param string $apiUrl Request URL
      * @param string $contentType Content-Type header
      * @param array $requestBody Request body
-     * @param string $date Date header
+     * @param string $dateTime Date/time
      */
-    public static function generateHmacSignature(string $partnerSecret, string $requestMethod, string $apiUrl, string $contentType, array $requestBody, string $date): string
+    public static function generateHmacSignature(string $partnerSecret, string $requestMethod, string $apiUrl, string $contentType, array $requestBody, string $dateTime): string
     {
         $hashedPayload = '';
         if (! empty($requestBody)) {
@@ -383,7 +369,7 @@ abstract class MerchantIntegration
         $content .= "\n";
         $content .= $contentType;
         $content .= "\n";
-        $content .= $date;
+        $content .= $dateTime;
         $content .= "\n";
         $content .= $apiUrl;
         $content .= "\n";
@@ -398,11 +384,11 @@ abstract class MerchantIntegration
      *
      * @param string $clientSecret Client secret
      * @param string $accessToken Access token
-     * @param string $date GMT date
+     * @param string $dateTime Date/time
      */
-    public static function generatePopSignature(string $clientSecret, string $accessToken, string $date): string
+    public static function generatePopSignature(string $clientSecret, string $accessToken, string $dateTime): string
     {
-        $timestamp = strtotime($date);
+        $timestamp = strtotime($dateTime);
         $message = $timestamp . $accessToken;
         $signature = hash_hmac('sha256', $message, $clientSecret, true);
         $payload = [
@@ -471,7 +457,84 @@ abstract class MerchantIntegration
     }
 
     /**
-     * Handle general exception
+     * Get Content-Type.
+     *
+     * @param string $requestMethod Request method, GET, POST, PUT
+     */
+    protected function getContentType(string $requestMethod): string
+    {
+        return $requestMethod === self::METHOD_GET ? self::HEADER_APPLICATION_FORM : self::HEADER_APPLICATION_JSON;
+    }
+
+    /**
+     * Get default request headers.
+     *
+     * @param string $contentType Content-Type
+     */
+    protected function getDefaultRequestHeaders(string $contentType): array
+    {
+        return [
+            'Accept'          => self::HEADER_APPLICATION_JSON,
+            'X-Request-ID'    => self::generateRandomString(),
+            'Content-Type'    => $contentType,
+            'X-Sdk-Country'   => $this->country,
+            'X-Sdk-Version'   => self::SDK_VERSION,
+            'X-Sdk-Language'  => self::SDK_LANGUAGE,
+            'X-Sdk-Signature' => self::SDK_SIGNATURE,
+        ];
+    }
+
+    /**
+     * Get HMAC request headers.
+     *
+     * @param string $requestMethod Request method, GET, POST, PUT
+     * @param string $apiPath API path
+     * @param array $requestBody Request body
+     */
+    protected function getHmacRequestHeaders(string $requestMethod, string $apiPath, array $requestBody): array
+    {
+        $dateTime = $this->getUTCDateTimeInRFC7231();
+        $contentType = $this->getContentType($requestMethod);
+        $defaultHeaders = $this->getDefaultRequestHeaders($contentType);
+        $hmac = self::generateHmacSignature($this->partnerSecret, $requestMethod, $apiPath, $contentType, $requestBody, $dateTime);
+
+        return array_merge($defaultHeaders, [
+            'Date'          => $dateTime,
+            'Authorization' => ($this->partnerID . ':' . $hmac),
+        ]);
+    }
+
+    /**
+     * Get POP signature request headers.
+     *
+     * @param string $requestMethod Request method, GET, POST, PUT
+     * @param string $accessToken Access token
+     */
+    protected function getPopRequestHeaders(string $requestMethod, string $accessToken): array
+    {
+        $dateTime = $this->getUTCDateTimeInRFC7231();
+        $contentType = $this->getContentType($requestMethod);
+        $defaultHeaders = $this->getDefaultRequestHeaders($contentType);
+
+        return array_merge($defaultHeaders, [
+            'Date'          => $dateTime,
+            'X-GID-AUX-POP' => self::generatePopSignature($this->clientSecret, $accessToken, $dateTime),
+            'Authorization' => 'Bearer ' . $accessToken,
+        ]);
+    }
+
+    /**
+     * Get UTC Date/Time in RFC7231 (D, d M Y H:i:s \G\M\T).
+     */
+    protected function getUTCDateTimeInRFC7231(): string
+    {
+        $now = new \DateTime('now', new \DateTimeZone('UTC'));
+
+        return $now->format(\DateTime::RFC7231);
+    }
+
+    /**
+     * Handle general exception.
      *
      * @param $responseClass Response class name
      * @params \Exception $ex Exception
@@ -501,49 +564,25 @@ abstract class MerchantIntegration
     }
 
     /**
-     * Is environment staging?
-     * This is not being used, so adding codeCoverageIgnore for now.
+     * Prepare GET request API path.
+     * We let Offline override it.
      *
-     * @codeCoverageIgnore
+     * @param string $apiPath API path
      */
-    protected function isEnvironmentStaging(): bool
+    protected function prepareGetRequestPath(string $apiPath): string
     {
-        return $this->environment === self::STAGING;
-    }
-
-    /**
-     * Is it an offline merchant?
-     */
-    protected function isTypeOffline(): bool
-    {
-        return $this->type === self::TYPE_OFFLINE;
-    }
-
-    /**
-     * Is it an online merchant?
-     */
-    protected function isTypeOnline(): bool
-    {
-        return $this->type === self::TYPE_ONLINE;
+        return $apiPath;
     }
 
     /**
      * Prepare request body.
+     * We let Offline override it.
      *
      * @param array $requestBody Request body
      */
     protected function prepareRequestBody(array $requestBody): array
     {
-        if ($this->isTypeOnline()) {
-            return $requestBody;
-        }
-
-        $credentials = [
-            'grabID'     => $this->merchantID,
-            'terminalID' => $this->terminalID,
-        ];
-
-        return array_merge($requestBody, $credentials);
+        return $requestBody;
     }
 
     /**
@@ -556,78 +595,13 @@ abstract class MerchantIntegration
      */
     protected function prepareRequestHeaders(string $requestMethod, string $apiPath, array $requestBody, string $accessToken): array
     {
-        // Determine Content-Type
-        $contentType = $requestMethod === self::METHOD_GET ? self::HEADER_APPLICATION_FORM : self::HEADER_APPLICATION_JSON;
-
-        $headers = [
-            'Accept'          => self::HEADER_APPLICATION_JSON,
-            'X-Request-ID'    => self::generateRandomString(),
-            'Content-Type'    => $contentType,
-            'X-Sdk-Country'   => $this->country,
-            'X-Sdk-Version'   => self::SDK_VERSION,
-            'X-Sdk-Language'  => self::SDK_LANGUAGE,
-            'X-Sdk-Signature' => self::SDK_SIGNATURE,
-        ];
-
-        // Set header for API OAuth token
-        if (isset($this->apiPaths['OAUTH_TOKEN']) && $apiPath === $this->apiPaths['OAUTH_TOKEN']) {
-            return $headers;
+        // If we have access token, we send it as verification
+        if (! empty($accessToken)) {
+            return $this->getPopRequestHeaders($requestMethod, $accessToken);
         }
 
-        // Get current date and time
-        $now = new \DateTime('now', new \DateTimeZone('UTC'));
-        $gmtTime = $now->format(\DateTime::RFC7231);
-
-        // Generate HMAC signature
-        $hmac = self::generateHmacSignature($this->partnerSecret, $requestMethod, $apiPath, $contentType, $requestBody, $gmtTime);
-
-        // Online
-        if ($this->isTypeOnline() && ! empty($accessToken)) {
-            return array_merge($headers, [
-                'Date'          => $gmtTime,
-                'X-GID-AUX-POP' => self::generatePopSignature($this->clientSecret, $accessToken, $gmtTime),
-                'Authorization' => 'Bearer ' . $accessToken,
-            ]);
-        }
-
-        // Offline
-        return array_merge($headers, [
-            'Date'          => $gmtTime,
-            'Authorization' => ($this->partnerID . ':' . $hmac),
-        ]);
-    }
-
-    /**
-     * Prepare request API path.
-     *
-     * @param string $requestMethod Request method, GET, POST, PUT
-     * @param string $apiPath API path
-     */
-    protected function prepareRequestPath(string $requestMethod, string $apiPath): string
-    {
-        if ($this->isTypeOnline()) {
-            return $apiPath;
-        }
-
-        // We only need to modify OFFLINE apiURL
-        $credentials = [
-            'grabID'     => $this->merchantID,
-            'terminalID' => $this->terminalID,
-        ];
-
-        if ($requestMethod === self::METHOD_GET) {
-            if (strpos($apiPath, '?') !== false) {
-                $apiPath .= '&';
-            } else {
-                // So far, all internal GET URLs have query params in them already
-                // @codeCoverageIgnoreStart
-                $apiPath .= '?';
-                // @codeCoverageIgnoreEnd
-            }
-            $apiPath .= urldecode(http_build_query($credentials));
-        }
-
-        return $apiPath;
+        // If not we assume we are using HMAC as a verification method
+        return $this->getHmacRequestHeaders($requestMethod, $apiPath, $requestBody);
     }
 
     /**
@@ -640,7 +614,7 @@ abstract class MerchantIntegration
     protected function sendGetRequest($responseClass, string $apiPath, string $accessToken = ''): Response
     {
         try {
-            $requestPath = $this->prepareRequestPath(self::METHOD_GET, $apiPath);
+            $requestPath = $this->prepareGetRequestPath($apiPath);
             $requestUrl = $this->getApiUrl() . $requestPath;
             $requestHeaders = $this->prepareRequestHeaders(self::METHOD_GET, $requestPath, [], $accessToken);
 
@@ -662,18 +636,10 @@ abstract class MerchantIntegration
      */
     protected function sendPostRequest($responseClass, string $apiPath, array $requestBody, string $accessToken = ''): Response
     {
-        try {
-            $requestPath = $this->prepareRequestPath(self::METHOD_POST, $apiPath);
-            $requestUrl = $this->getApiUrl() . $apiPath;
-            $requestBody = $this->prepareRequestBody($requestBody);
-            $requestHeaders = $this->prepareRequestHeaders(self::METHOD_POST, $requestPath, $requestBody, $accessToken);
+        $requestBody = $this->prepareRequestBody($requestBody);
+        $requestHeaders = $this->prepareRequestHeaders(self::METHOD_POST, $apiPath, $requestBody, $accessToken);
 
-            $response = RestClient::sendRequest(self::METHOD_POST, $requestUrl, $requestHeaders, $requestBody);
-
-            return $this->formatResponse($responseClass, $response->code, $response->headers, $response->body);
-        } catch (\Exception $ex) {
-            return $this->handleException($responseClass, $ex);
-        }
+        return $this->sendRawPostRequest($responseClass, $apiPath, $requestBody, $requestHeaders);
     }
 
     /**
@@ -687,12 +653,31 @@ abstract class MerchantIntegration
     protected function sendPutRequest($responseClass, string $apiPath, array $requestBody, string $accessToken = ''): Response
     {
         try {
-            $requestPath = $this->prepareRequestPath(self::METHOD_PUT, $apiPath);
             $requestUrl = $this->getApiUrl() . $apiPath;
             $requestBody = $this->prepareRequestBody($requestBody);
-            $requestHeaders = $this->prepareRequestHeaders(self::METHOD_PUT, $requestPath, $requestBody, $accessToken);
+            $requestHeaders = $this->prepareRequestHeaders(self::METHOD_PUT, $apiPath, $requestBody, $accessToken);
 
             $response = RestClient::sendRequest(self::METHOD_PUT, $requestUrl, $requestHeaders, $requestBody);
+
+            return $this->formatResponse($responseClass, $response->code, $response->headers, $response->body);
+        } catch (\Exception $ex) {
+            return $this->handleException($responseClass, $ex);
+        }
+    }
+
+    /**
+     * Wrapper for sending raw POST request.
+     *
+     * @param $responseClass Response class name
+     * @param string $apiPath API path
+     * @param array $requestBody Request body
+     * @param array $requestHeaders Request header
+     */
+    protected function sendRawPostRequest($responseClass, string $apiPath, array $requestBody, array $requestHeaders = []): Response
+    {
+        try {
+            $requestUrl = $this->getApiUrl() . $apiPath;
+            $response = RestClient::sendRequest(self::METHOD_POST, $requestUrl, $requestHeaders, $requestBody);
 
             return $this->formatResponse($responseClass, $response->code, $response->headers, $response->body);
         } catch (\Exception $ex) {

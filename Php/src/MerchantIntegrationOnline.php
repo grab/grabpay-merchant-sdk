@@ -39,7 +39,6 @@ class MerchantIntegrationOnline extends MerchantIntegration
     {
         parent::__construct($environment, $country, $partnerID, $partnerSecret, $merchantID);
 
-        $this->type = self::TYPE_ONLINE;
         $this->clientID = $clientID;
         $this->clientSecret = $clientSecret;
         $this->redirectUrl = $redirectUrl;
@@ -103,7 +102,6 @@ class MerchantIntegrationOnline extends MerchantIntegration
             $requestBody = array_merge($requestBody, ['shippingDetails' => (array) $chargeInitParams->shippingDetails]);
         }
 
-        // This to get the which path can runing on their country
         return $this->sendPostRequest(ChargeInitResponse::class, $this->apiPaths['ONA_CHARGE_INIT'], $requestBody);
     }
 
@@ -202,7 +200,7 @@ class MerchantIntegrationOnline extends MerchantIntegration
             'redirect_uri'  => $this->redirectUrl,
         ];
 
-        return $this->sendPostRequest(Oauth2TokenResponse::class, $this->apiPaths['OAUTH_TOKEN'], $requestBody);
+        return $this->sendRawPostRequest(Oauth2TokenResponse::class, $this->apiPaths['OAUTH_TOKEN'], $requestBody, $this->getDefaultRequestHeaders(self::HEADER_APPLICATION_JSON));
     }
 
     /**
