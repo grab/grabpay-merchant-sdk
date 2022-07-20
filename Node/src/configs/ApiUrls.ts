@@ -15,36 +15,44 @@ export type ApiUrlSet = {
   POS_REFUND_TRANSACTION: string;
 };
 
+const API_PATH_GRAB_ID_V1 = '/grabid/v1';
+const API_PATH_MOCA_PARTNER_V2 = '/mocapay/partner/v2';
+const API_PATH_MOCA_PARTNERS_V1 = '/mocapay/partners/v1';
+const API_PATH_REGIONAL_PARTNER_V1 = '/grabpay/partner/v1';
+const API_PATH_REGIONAL_PARTNER_V2 = '/grabpay/partner/v2';
+
 const urlSets: Partial<Record<TCountry, ApiUrlSet>> = {
   VN: {
-    OAUTH_TOKEN: '/grabid/v1/oauth2/token',
-    ONA_CHARGE_COMPLETE: '/mocapay/partner/v2/charge/complete',
-    ONA_CHARGE_INIT: '/mocapay/partner/v2/charge/init',
-    ONA_CHARGE_STATUS: '/moca/partner/v2/charge/{partnerTxID}/status',
-    ONA_ONE_TIME_CHARGE_STATUS: '/mocapay/partner/v2/one-time-charge/{partnerTxID}/status',
-    ONA_REFUND: '/mocapay/partner/v2/refund',
-    ONA_REFUND_STATUS: '/mocapay/partner/v2/refund/{partnerTxID}/status',
-    POS_CANCEL_TRANSACTION: '/mocapay/partners/v1/terminal/transaction/{origPartnerTxID}/cancel',
-    POS_CREATE_QR_CODE: '/mocapay/partners/v1/terminal/qrcode/create',
-    POS_GET_TXN_DETAIL: '/mocapay/partners/v1/terminal/transaction/{partnerTxID}',
-    POS_PERFORM_TRANSACTION: '/mocapay/partners/v1/terminal/transaction/perform',
-    POS_REFUND_TRANSACTION: '/mocapay/partners/v1/terminal/transaction/{origPartnerTxID}/refund',
+    OAUTH_TOKEN: `${API_PATH_GRAB_ID_V1}/oauth2/token`,
+    ONA_CHARGE_COMPLETE: `${API_PATH_MOCA_PARTNER_V2}/charge/complete`,
+    ONA_CHARGE_INIT: `${API_PATH_MOCA_PARTNER_V2}/charge/init`,
+    ONA_CHARGE_STATUS: `/moca/partner/v2/charge/{partnerTxID}/status`,
+    ONA_ONE_TIME_CHARGE_STATUS: `${API_PATH_MOCA_PARTNER_V2}/one-time-charge/{partnerTxID}/status`,
+    ONA_REFUND: `${API_PATH_MOCA_PARTNER_V2}/refund`,
+    ONA_REFUND_STATUS: `${API_PATH_MOCA_PARTNER_V2}/refund/{partnerTxID}/status`,
+
+    POS_CANCEL_TRANSACTION: `${API_PATH_MOCA_PARTNERS_V1}/terminal/transaction/{origPartnerTxID}/cancel`,
+    POS_CREATE_QR_CODE: `${API_PATH_MOCA_PARTNERS_V1}/terminal/qrcode/create`,
+    POS_GET_TXN_DETAIL: `${API_PATH_MOCA_PARTNERS_V1}/terminal/transaction/{partnerTxID}`,
+    POS_PERFORM_TRANSACTION: `${API_PATH_MOCA_PARTNERS_V1}/terminal/transaction/perform`,
+    POS_REFUND_TRANSACTION: `${API_PATH_MOCA_PARTNERS_V1}/terminal/transaction/{origPartnerTxID}/refund`,
   },
 };
 
 const fallbackUrlSet: ApiUrlSet = {
-  OAUTH_TOKEN: '/grabid/v1/oauth2/token',
-  ONA_CHARGE_COMPLETE: '/grabpay/partner/v2/charge/complete',
-  ONA_CHARGE_INIT: '/grabpay/partner/v2/charge/init',
-  ONA_CHARGE_STATUS: '/grabpay/partner/v2/charge/{partnerTxID}/status',
-  ONA_ONE_TIME_CHARGE_STATUS: '/grabpay/partner/v2/one-time-charge/{partnerTxID}/status',
-  ONA_REFUND: '/grabpay/partner/v2/refund',
-  ONA_REFUND_STATUS: '/grabpay/partner/v2/refund/{partnerTxID}/status',
-  POS_CANCEL_TRANSACTION: '/grabpay/partner/v1/terminal/transaction/{origPartnerTxID}/cancel',
-  POS_CREATE_QR_CODE: '/grabpay/partner/v1/terminal/qrcode/create',
-  POS_GET_TXN_DETAIL: '/grabpay/partner/v1/terminal/transaction/{partnerTxID}',
-  POS_PERFORM_TRANSACTION: '/grabpay/partner/v1/terminal/transaction/perform',
-  POS_REFUND_TRANSACTION: '/grabpay/partner/v1/terminal/transaction/{origPartnerTxID}/refund',
+  OAUTH_TOKEN: `${API_PATH_GRAB_ID_V1}/oauth2/token`,
+  ONA_CHARGE_COMPLETE: `${API_PATH_REGIONAL_PARTNER_V2}/charge/complete`,
+  ONA_CHARGE_INIT: `${API_PATH_REGIONAL_PARTNER_V2}/charge/init`,
+  ONA_CHARGE_STATUS: `${API_PATH_REGIONAL_PARTNER_V2}/charge/{partnerTxID}/status`,
+  ONA_ONE_TIME_CHARGE_STATUS: `${API_PATH_REGIONAL_PARTNER_V2}/one-time-charge/{partnerTxID}/status`,
+  ONA_REFUND: `${API_PATH_REGIONAL_PARTNER_V2}/refund`,
+  ONA_REFUND_STATUS: `${API_PATH_REGIONAL_PARTNER_V2}/refund/{partnerTxID}/status`,
+
+  POS_CANCEL_TRANSACTION: `${API_PATH_REGIONAL_PARTNER_V1}/terminal/transaction/{origPartnerTxID}/cancel`,
+  POS_CREATE_QR_CODE: `${API_PATH_REGIONAL_PARTNER_V1}/terminal/qrcode/create`,
+  POS_GET_TXN_DETAIL: `${API_PATH_REGIONAL_PARTNER_V1}/terminal/transaction/{partnerTxID}`,
+  POS_PERFORM_TRANSACTION: `${API_PATH_REGIONAL_PARTNER_V1}/terminal/transaction/perform`,
+  POS_REFUND_TRANSACTION: `${API_PATH_REGIONAL_PARTNER_V1}/terminal/transaction/{origPartnerTxID}/refund`,
 };
 
 export function getUrls(country: TCountry) {
