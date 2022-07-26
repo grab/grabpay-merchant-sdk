@@ -12,10 +12,26 @@ We are refering `ONA` as `Online` and `POS` as `Offline`.
 
 ## Installation
 
-Include `grabpay-merchant-sdk` using composer.
+1. Download [grab/grabpay-merchant-sdk](https://github.com/grab/grabpay-merchant-sdk/archive/refs/heads/main.zip).
+2. Extract contents of `grabpay-merchant-sdk-main.zip` to `~/Downloads/grabpay-merchant-sdk`.
+3. In your project `composer.json`, add the following lines.
 
 ```bash
-composer require grab/grabpay-merchant-sdk
+"repositories": [
+    {
+        "type": "path",
+        "url": "~/Downloads/grabpay-merchant-sdk/Php",
+        "options": {
+            "symlink": false
+        }
+    }
+],
+```
+
+4. Run the following command to include `grab/grabpay-merchant-sdk` to your project.
+
+```bash
+composer require grab/grabpay-merchant-sdk dev-main
 ```
 
 ## Configuring the SDK
@@ -171,76 +187,114 @@ $merchantIntegrationOffline = new MerchantIntegrationOffline($environment, $coun
 
 ### POS API
 
-#### Create MPQR code
+#### Init
+
+The Payment Initiate API allows a merchant to initiate both a Merchant Present QR (MPQR), and well as a Consumer Present QR payment (CPQR).
+
+##### MPQR
 
 ```php
-$params = new CreateQrCodeParams([
-    'amount'      => int, // Transaction amount as integer
-    'currency'    => 'string', // Currency for the transaction
-    'msgID'       => 'string', // Message ID
-    'partnerTxID' => 'string', // Partner transaction ID
+$params = new InitParams([
+    'transactionDetails' => [
+        'paymentChannel'    => MerchantIntegrationOffline::PAYMENT_CHANNEL_MPQR, // Indicating it is MPQR
+        'partnerTxID'       => 'string', // Partner transaction ID
+        'partnerGroupTxID'  => 'string', // Partner order ID
+        'amount'            => int, // Transaction amount as integer
+        'currency'          => MerchantIntegrationOffline::SGD, // Currency, here we are using SGD
+        'paymentExpiryTime' => strtotime('+5 minutes'), // Payment expiry time
+    ],
 ]);
-$response =  $merchantIntegrationOffline->createQrCode($params);
+$response =  $merchantIntegrationOffline->initiate($params);
 ```
 
-#### If merchant is on CPQR code, use this to perform the transaction
+##### CPQR
 
 ```php
-$params = new PerformQrCodeTxnParams([
-    'amount'      => int, // Transaction amount as integer
-    'code'        => 'string', // Scanned QR code
-    'currency'    => 'string', // Currency for the transaction
-    'msgID'       => 'string', // Message ID
-    'partnerTxID' => 'string', // Partner transaction ID
+$params = new InitParams([
+    'transactionDetails' => [
+        'paymentChannel'    => MerchantIntegrationOffline::PAYMENT_CHANNEL_CPQR, // Indicating it is CPQR
+        'partnerTxID'       => 'string', // Partner transaction ID
+        'partnerGroupTxID'  => 'string', // Partner order ID
+        'amount'            => int, // Transaction amount as integer
+        'currency'          => MerchantIntegrationOffline::SGD, // Currency, here we are using SGD
+        'paymentExpiryTime' => strtotime('+5 minutes'), // Payment expiry time
+    ],
+    'POSDetails' => [
+        'consumerIdentifier' => $code, // Scanned QR code
+    ],
 ]);
-$response = $merchantIntegrationOffline->performQrCode($params);
+$response = $merchantIntegrationOffline->initiate($params);
 ```
 
-#### Cancel transaction that hasn't been processed
+#### Cancel
+
+A cancellation request can be made using the Cancellation API in the following scenarios:
+
+1. When a consumer decides to cancel a Grab payment at a self-service terminal.
+2. When a cashier needs to cancel a Grab payment.
+3. When a transaction is not completed before paymentExpiryTime.
 
 ```php
-$params = new CancelTxnParams([
-    'currency'        => 'string', // Currency Currency for the transaction
-    'msgID'           => 'string', // Message ID
-    'origPartnerTxID' => 'string', // Original partner transaction ID
+$params = new CancelParams([
+    'transactionDetails' => [
+        'paymentChannel'    => MerchantIntegrationOffline::PAYMENT_CHANNEL_MPQR, // Indicating it is MPQR or CPQR
+        'originPartnerTxID' => 'string', // Partner transaction ID
+        'currency'          => MerchantIntegrationOffline::SGD, // Currency, here we are using SGD
+    ],
 ]);
 $response = $merchantIntegrationOffline->cancel($params);
 ```
 
-#### Refund transaction that has been charged
+#### Refund
+
+A refund request can be made for a payment transaction. The Refund API supports the following refunds:
+
+1. Partial refund.
+2. Full refund.
+
+Merchants will need to provide the original payment partnerTxID in the originPartnerTxID parameter in the transactionDetails object in order to initiate a refund for a specific payment.
+
+The refund validity is 90 days from the date of payment.
 
 ```php
-$params = new RefundTxnParams([
-    'amount'          => int, // Refunded amount as integer
-    'currency'        => 'string', // Currency for the refunded transaction
-    'msgID'           => 'string', // Message ID
-    'origPartnerTxID' => 'string', // Original partner transaction ID to be refunded
-    'partnerTxID'     => 'string', // Partner transaction ID to be refunded
-    'reason'          => 'string', // Description of the refund
+$params = new RefundParams([
+    'transactionDetails' => [
+        'paymentChannel'    => MerchantIntegrationOffline::PAYMENT_CHANNEL_MPQR, // Indicating it is MPQR or CPQR
+        'originPartnerTxID' => 'string', // The original partner transaction ID to refund
+        'partnerTxID'       => 'string', // Partner transaction ID
+        'partnerGroupTxID'  => 'string', // Partner order ID
+        'amount'            => int, // Transaction amount as integer
+        'currency'          => MerchantIntegrationOffline::SGD, // Currency, here we are using SGD
+        'reason'            => 'string', // The reason for the refund
+    ],
 ]);
 $response = $merchantIntegrationOffline->refund($params);
 ```
 
-#### Get status of the transaction
+#### Inquiry
+
+The Inquiry API allows the merchant to perform the following checks:
+
+1. When an ongoing transaction is in PENDING status, and merchant has yet to receive a terminal transaction status (SUCCESS / FAILURE).
+2. When merchant needs to check the details of a historical transaction.
+
+Merchants are to implement rate limiting when making an inquiry call.
+
+Merchant will need to implement rate limiting feature, and restrict to a maximum of 50 API calls per second per Partner ID. This will help avoid unnecessary HTTP 429 response status.
+
+When using the Inquiry API poll for PENDING transactions, merchants are advised to rate limit to 1 Inquiry API call per second per transaction.
 
 ```php
-$params = new GetTxnDetailsParams([
-    'currency'    => 'string', // Currency for the transaction
-    'msgID'       => 'string', // Message ID
-    'partnerTxID' => 'string', // Partner transaction ID
+$params = new InquiryParams([
+    'transactionDetails' => [
+        'paymentChannel' => MerchantIntegrationOffline::PAYMENT_CHANNEL_MPQR, // Indicating it is MPQR or CPQR
+        'currency'       => MerchantIntegrationOffline::SGD, // Currency, here we are using SGD
+        'txType'         => MerchantIntegrationOffline::TX_TYPE_PAYMENT, // Indicating whether it is a PAYMENT or REFUND inquiry
+        'txRefType'      => MerchantIntegrationOffline::TX_REF_TYPE_PARTNERTXID, // Indicating whether the reference ID is GRABTXID or PARTNERTXID
+        'txRefID'        => 'string', // Partner transaction ID if the above is PARTNERTXID
+    ],
 ]);
-$response = $merchantIntegrationOffline->getTxnDetails($params);
-```
-
-#### Get status of the refunded transaction
-
-```php
-$params = new GetTxnDetailsParams([
-    'currency'    => 'string', // Currency for the transaction
-    'msgID'       => 'string', // Message ID
-    'partnerTxID' => 'string', // Partner transaction ID
-]);
-$response = $merchantIntegrationOffline->getRefundDetails($params);
+$response = $merchantIntegrationOffline->inquiry($params);
 ```
 
 ## License

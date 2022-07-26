@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use GrabPay\Merchant\MerchantIntegrationOffline;
-use GrabPay\Merchant\Models\Offline\CancelTxnParams;
-use GrabPay\Merchant\Models\Offline\GetTxnDetailsParams;
-use GrabPay\Merchant\Models\Offline\PerformQrCodeTxnParams;
-use GrabPay\Merchant\Models\Offline\RefundTxnParams;
+use GrabPay\Merchant\Models\Offline\CancelParams;
+use GrabPay\Merchant\Models\Offline\InitiateParams;
+use GrabPay\Merchant\Models\Offline\InquiryParams;
+use GrabPay\Merchant\Models\Offline\RefundParams;
 
 // Requires
 include_once '../config.php';
@@ -22,56 +22,77 @@ $amount = 10;
 // Partner transaction ID
 $partnerTxID = MerchantIntegrationOffline::generateRandomString();
 
+// Partner group transaction ID
+$partnerGroupTxID = MerchantIntegrationOffline::generateRandomString();
+
 // Scanned QR Code
 $code = '650000000000000000';
 
 // Performs a payment transaction from a Customer Presented QR (CPQR) code
-$performQrCodeTxnParams = new PerformQrCodeTxnParams([
-    'amount'      => $amount,
-    'code'        => $code,
-    'currency'    => MerchantIntegrationOffline::SGD,
-    'msgID'       => MerchantIntegrationOffline::generateRandomString(),
-    'partnerTxID' => $partnerTxID,
+$initiateParams = new InitiateParams([
+    'transactionDetails' => [
+        'paymentChannel'    => MerchantIntegrationOffline::PAYMENT_CHANNEL_CPQR,
+        'partnerTxID'       => $partnerTxID,
+        'partnerGroupTxID'  => $partnerGroupTxID,
+        'amount'            => $amount,
+        'currency'          => MerchantIntegrationOffline::SGD,
+        'paymentExpiryTime' => strtotime('+5 minutes'),
+    ],
+    'POSDetails' => [
+        'consumerIdentifier' => $code,
+    ],
 ]);
-$performQrCode = $merchantIntegrationOffline->performQrCode($performQrCodeTxnParams);
+$initiate = $merchantIntegrationOffline->initiate($initiateParams);
 
 // Returns the payment transaction details
-$getTxnDetailsParams = new GetTxnDetailsParams([
-    'currency'    => MerchantIntegrationOffline::SGD,
-    'msgID'       => MerchantIntegrationOffline::generateRandomString(),
-    'partnerTxID' => $partnerTxID,
+$inquiryParams = new InquiryParams([
+    'transactionDetails' => [
+        'paymentChannel' => MerchantIntegrationOffline::PAYMENT_CHANNEL_CPQR,
+        'currency'       => MerchantIntegrationOffline::SGD,
+        'txType'         => MerchantIntegrationOffline::TX_TYPE_PAYMENT,
+        'txRefType'      => MerchantIntegrationOffline::TX_REF_TYPE_PARTNERTXID,
+        'txRefID'        => $partnerTxID,
+    ],
 ]);
-$getTxnDetails = $merchantIntegrationOffline->getTxnDetails($getTxnDetailsParams);
+$inquiry = $merchantIntegrationOffline->inquiry($inquiryParams);
 
 // Cancels a pending payment
 $cancelPartnerTxID = MerchantIntegrationOffline::generateRandomString();
-$cancelTxnParams = new CancelTxnParams([
-    'currency'        => MerchantIntegrationOffline::SGD,
-    'msgID'           => MerchantIntegrationOffline::generateRandomString(),
-    'origPartnerTxID' => $partnerTxID,
+$initiateCancelParams = new InitiateParams([
+    'transactionDetails' => [
+        'paymentChannel'    => MerchantIntegrationOffline::PAYMENT_CHANNEL_MPQR,
+        'partnerTxID'       => $cancelPartnerTxID,
+        'partnerGroupTxID'  => MerchantIntegrationOffline::generateRandomString(),
+        'amount'            => $amount,
+        'currency'          => MerchantIntegrationOffline::SGD,
+        'paymentExpiryTime' => strtotime('+5 minutes'),
+    ],
 ]);
-$cancel = $merchantIntegrationOffline->cancel($cancelTxnParams);
+$initiateCancel = $merchantIntegrationOffline->initiate($initiateCancelParams);
+$cancelParams = new CancelParams([
+    'transactionDetails' => [
+        'paymentChannel'    => MerchantIntegrationOffline::PAYMENT_CHANNEL_MPQR,
+        'originPartnerTxID' => $cancelPartnerTxID,
+        'currency'          => MerchantIntegrationOffline::SGD,
+    ],
+]);
+$cancel = $merchantIntegrationOffline->cancel($cancelParams);
 
 // Refunds a successful payment
 $refundPartnerTxID = MerchantIntegrationOffline::generateRandomString();
 $refundReason = 'Test CPQR Refund Payment';
-$refundTxnParams = new RefundTxnParams([
-    'amount'          => $amount,
-    'currency'        => MerchantIntegrationOffline::SGD,
-    'msgID'           => MerchantIntegrationOffline::generateRandomString(),
-    'origPartnerTxID' => $partnerTxID,
-    'partnerTxID'     => $refundPartnerTxID,
-    'reason'          => $refundReason,
+$refundTxnParams = new RefundParams([
+    'transactionDetails' => [
+        'paymentChannel'    => MerchantIntegrationOffline::PAYMENT_CHANNEL_CPQR,
+        'originPartnerTxID' => $partnerTxID,
+        'partnerTxID'       => $refundPartnerTxID,
+        'partnerGroupTxID'  => $partnerGroupTxID,
+        'amount'            => $amount,
+        'currency'          => MerchantIntegrationOffline::SGD,
+        'reason'            => $refundReason,
+    ],
 ]);
 $refund = $merchantIntegrationOffline->refund($refundTxnParams);
-
-// Returns the refund transaction details
-$getTxnDetailsParams = new GetTxnDetailsParams([
-    'currency'    => MerchantIntegrationOffline::SGD,
-    'msgID'       => MerchantIntegrationOffline::generateRandomString(),
-    'partnerTxID' => $refundPartnerTxID,
-]);
-$getRefundDetails = $merchantIntegrationOffline->getRefundDetails($getTxnDetailsParams);
 ?>
 <!doctype html>
 <html lang="en">
@@ -84,10 +105,10 @@ $getRefundDetails = $merchantIntegrationOffline->getRefundDetails($getTxnDetails
 <body>
     <p>partnerTxID</p>
     <pre><?php print_r($partnerTxID); ?></pre>
-    <p>performQrCode</p>
-    <pre><?php print_r($performQrCode->data); ?></pre>
-    <p>getTxnDetails</p>
-    <pre><?php print_r($getTxnDetails->data); ?></pre>
+    <p>initiate</p>
+    <pre><?php print_r($initiate->data); ?></pre>
+    <p>inquiry</p>
+    <pre><?php print_r($inquiry->data); ?></pre>
     <p>cancelPartnerTxID</p>
     <pre><?php print_r($cancelPartnerTxID); ?></pre>
     <p>cancel</p>
@@ -96,8 +117,6 @@ $getRefundDetails = $merchantIntegrationOffline->getRefundDetails($getTxnDetails
     <pre><?php print_r($refundPartnerTxID); ?></pre>
     <p>refund</p>
     <pre><?php print_r($refund->data); ?></pre>
-    <p>getRefundDetails</p>
-    <pre><?php print_r($getRefundDetails->data); ?></pre>
 </body>
 
 </html>

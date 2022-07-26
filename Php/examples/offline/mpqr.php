@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 use GrabPay\Merchant\MerchantIntegrationOffline;
-use GrabPay\Merchant\Models\Offline\CreateQrCodeParams;
+use GrabPay\Merchant\Models\Offline\InitiateParams;
+use GrabPay\Merchant\Models\Offline\InquiryParams;
 
 // Requires
 include_once '../config.php';
@@ -20,23 +21,39 @@ $amount = 10;
 $partnerTxID = MerchantIntegrationOffline::generateRandomString();
 
 // Creates a payment order from a Merchant Presented QR (MPQR) code.
-$createQrCodeParams = new CreateQrCodeParams([
-    'amount'      => $amount,
-    'currency'    => MerchantIntegrationOffline::SGD,
-    'msgID'       => MerchantIntegrationOffline::generateRandomString(),
-    'partnerTxID' => $partnerTxID,
+$initiateParams = new InitiateParams([
+    'transactionDetails' => [
+        'paymentChannel'    => MerchantIntegrationOffline::PAYMENT_CHANNEL_MPQR,
+        'partnerTxID'       => $partnerTxID,
+        'partnerGroupTxID'  => MerchantIntegrationOffline::generateRandomString(),
+        'amount'            => $amount,
+        'currency'          => MerchantIntegrationOffline::SGD,
+        'paymentExpiryTime' => strtotime('+5 minutes'),
+    ],
 ]);
-$createQrCode = $merchantIntegrationOffline->createQrCode($createQrCodeParams);
+$initiate = $merchantIntegrationOffline->initiate($initiateParams);
 
 // Display QR Code using Google Charts
 $googleChartQrCodeImgUrl = '';
-if (! empty($createQrCode->data->qrcode)) {
+if (! empty($initiate->data->POSDetails->qrPayload)) {
     $googleChartQrCodeImgUrl = 'https://chart.googleapis.com/chart?' . http_build_query([
-        'chl' => $createQrCode->data->qrcode ?? '',
+        'chl' => $initiate->data->POSDetails->qrPayload ?? '',
         'chs' => '300x300',
         'cht' => 'qr',
     ]);
 }
+
+// Returns the payment transaction details
+$inquiryParams = new InquiryParams([
+    'transactionDetails' => [
+        'paymentChannel' => MerchantIntegrationOffline::PAYMENT_CHANNEL_CPQR,
+        'currency'       => MerchantIntegrationOffline::SGD,
+        'txType'         => MerchantIntegrationOffline::TX_TYPE_PAYMENT,
+        'txRefType'      => MerchantIntegrationOffline::TX_REF_TYPE_PARTNERTXID,
+        'txRefID'        => $partnerTxID,
+    ],
+]);
+$inquiry = $merchantIntegrationOffline->inquiry($inquiryParams);
 ?>
 <!doctype html>
 <html lang="en">
@@ -49,9 +66,11 @@ if (! empty($createQrCode->data->qrcode)) {
 <body>
     <p>partnerTxID</p>
     <pre><?php print_r($partnerTxID); ?></pre>
-    <p>createQrCode</p>
+    <p>initiate</p>
     <img src="<?php echo $googleChartQrCodeImgUrl; ?>" title="Merchant Present QR (MPQR) Code" />
-    <pre><?php print_r($createQrCode->data); ?></pre>
+    <pre><?php print_r($initiate->data); ?></pre>
+    <p>inquiry</p>
+    <pre><?php print_r($inquiry->data); ?></pre>
 </body>
 
 </html>

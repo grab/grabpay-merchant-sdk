@@ -6,7 +6,7 @@ namespace GrabPay\Merchant\Models\Offline;
 
 use GrabPay\Merchant\Models\Response;
 
-class PerformQrCodeTxnResponse extends Response
+class InitiateResponse extends Response
 {
-    public PerformQrCodeTxnData $data;
+    public InitiateData $data;
 }

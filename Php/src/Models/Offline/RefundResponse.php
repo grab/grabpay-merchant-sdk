@@ -6,7 +6,7 @@ namespace GrabPay\Merchant\Models\Offline;
 
 use GrabPay\Merchant\Models\Response;
 
-class CreateQrCodeResponse extends Response
+class RefundResponse extends Response
 {
-    public CreateQrCodeData $data;
+    public RefundData $data;
 }
