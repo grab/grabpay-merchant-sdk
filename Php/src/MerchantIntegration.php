@@ -216,13 +216,6 @@ abstract class MerchantIntegration
     protected const MOCA_PARTNER_V2_PATH = '/mocapay/partner/v2';
 
     /**
-     * Constant for Moca partners v1 path.  Note that partner is with s.
-     *
-     * @var string
-     */
-    protected const MOCA_PARTNERS_V1_PATH = '/mocapay/partners/v1';
-
-    /**
      * Constant for Moca Production API URL.
      *
      * @var string
@@ -237,11 +230,11 @@ abstract class MerchantIntegration
     protected const MOCA_STG_API_URL = 'https://stg-paysi.moca.vn';
 
     /**
-     * Constant for Regional partner v1 path.
+     * Constant for partner v3 payment path.
      *
      * @var string
      */
-    protected const REGIONAL_PARTNER_V1_PATH = '/grabpay/partner/v1';
+    protected const PARTNER_V3_PAYMENT_PATH = '/grabpay/partner/v3/payment';
 
     /**
      * Constant for Regional partner v2 path.
@@ -617,7 +610,6 @@ abstract class MerchantIntegration
             $requestPath = $this->prepareGetRequestPath($apiPath);
             $requestUrl = $this->getApiUrl() . $requestPath;
             $requestHeaders = $this->prepareRequestHeaders(self::METHOD_GET, $requestPath, [], $accessToken);
-
             $response = RestClient::sendRequest(self::METHOD_GET, $requestUrl, $requestHeaders, []);
 
             return $this->formatResponse($responseClass, $response->code, $response->headers, $response->body);
@@ -656,7 +648,6 @@ abstract class MerchantIntegration
             $requestUrl = $this->getApiUrl() . $apiPath;
             $requestBody = $this->prepareRequestBody($requestBody);
             $requestHeaders = $this->prepareRequestHeaders(self::METHOD_PUT, $apiPath, $requestBody, $accessToken);
-
             $response = RestClient::sendRequest(self::METHOD_PUT, $requestUrl, $requestHeaders, $requestBody);
 
             return $this->formatResponse($responseClass, $response->code, $response->headers, $response->body);

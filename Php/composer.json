@@ -1,6 +1,7 @@
 {
   "name": "grab/grabpay-merchant-sdk",
   "description": "GrabPay Merchant Integration SDK for PHP",
+  "version": "3.0.0",
   "type": "library",
   "homepage": "https://developer.grab.com/",
   "license": "proprietary",

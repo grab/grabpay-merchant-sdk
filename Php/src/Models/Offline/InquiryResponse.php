@@ -6,7 +6,7 @@ namespace GrabPay\Merchant\Models\Offline;
 
 use GrabPay\Merchant\Models\Response;
 
-class GetTxnDetailsResponse extends Response
+class InquiryResponse extends Response
 {
-    public GetTxnDetailsData $data;
+    public InquiryData $data;
 }

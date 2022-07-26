@@ -4,20 +4,60 @@ declare(strict_types=1);
 
 namespace GrabPay\Merchant;
 
-use GrabPay\Merchant\Models\Offline\CancelTxnParams;
-use GrabPay\Merchant\Models\Offline\CancelTxnResponse;
-use GrabPay\Merchant\Models\Offline\CreateQrCodeParams;
-use GrabPay\Merchant\Models\Offline\CreateQrCodeResponse;
-use GrabPay\Merchant\Models\Offline\GetTxnDetailsParams;
-use GrabPay\Merchant\Models\Offline\GetTxnDetailsResponse;
-use GrabPay\Merchant\Models\Offline\PerformQrCodeTxnParams;
-use GrabPay\Merchant\Models\Offline\PerformQrCodeTxnResponse;
-use GrabPay\Merchant\Models\Offline\RefundTxnParams;
-use GrabPay\Merchant\Models\Offline\RefundTxnResponse;
+use GrabPay\Merchant\Models\Offline\CancelParams;
+use GrabPay\Merchant\Models\Offline\CancelResponse;
+use GrabPay\Merchant\Models\Offline\InitiateParams;
+use GrabPay\Merchant\Models\Offline\InitiateResponse;
+use GrabPay\Merchant\Models\Offline\InquiryParams;
+use GrabPay\Merchant\Models\Offline\InquiryResponse;
+use GrabPay\Merchant\Models\Offline\RefundParams;
+use GrabPay\Merchant\Models\Offline\RefundResponse;
 use GrabPay\Merchant\Models\Response;
 
 class MerchantIntegrationOffline extends MerchantIntegration
 {
+    /**
+     * Constant for consumer present payment channel (CPQR).
+     *
+     * @var string
+     */
+    public const PAYMENT_CHANNEL_CPQR = 'CPQR';
+
+    /**
+     * Constant for merchant present payment channel (MPQR).
+     *
+     * @var string
+     */
+    public const PAYMENT_CHANNEL_MPQR = 'MPQR';
+
+    /**
+     * Transaction reference type for grabTxID (GRABTXID).
+     *
+     * @var string
+     */
+    public const TX_REF_TYPE_GRABTXID = 'GRABTXID';
+
+    /**
+     * Transaction reference type for partnerTxID (PARTNERTXID).
+     *
+     * @var string
+     */
+    public const TX_REF_TYPE_PARTNERTXID = 'PARTNERTXID';
+
+    /**
+     * Transaction type for payment (PAYMENT).
+     *
+     * @var string
+     */
+    public const TX_TYPE_PAYMENT = 'PAYMENT';
+
+    /**
+     * Transaction type for refund (REFUND).
+     *
+     * @var string
+     */
+    public const TX_TYPE_REFUND = 'REFUND';
+
     /**
      * MerchantIntegrationOffline constructor.
      *
@@ -35,158 +75,83 @@ class MerchantIntegrationOffline extends MerchantIntegration
         $this->terminalID = $terminalID;
 
         // Setup API paths
-        $apiPathPrefix = $this->isCountryVietnam() ? self::MOCA_PARTNERS_V1_PATH : self::REGIONAL_PARTNER_V1_PATH;
         $this->apiPaths = [
-            'POS_CREATE_QR_CODE'      => $apiPathPrefix . '/terminal/qrcode/create',
-            'POS_CANCEL_TRANSACTION'  => $apiPathPrefix . '/terminal/transaction/{origPartnerTxID}/cancel',
-            'POS_REFUND_TRANSACTION'  => $apiPathPrefix . '/terminal/transaction/{origPartnerTxID}/refund',
-            'POS_PERFORM_TRANSACTION' => $apiPathPrefix . '/terminal/transaction/perform',
-            'POS_GET_TXN_DETAIL'      => $apiPathPrefix . '/terminal/transaction/{partnerTxID}',
+            'POS_INITIATE' => self::PARTNER_V3_PAYMENT_PATH . '/init',
+            'POS_INQUIRY'  => self::PARTNER_V3_PAYMENT_PATH . '/inquiry',
+            'POS_REFUND'   => self::PARTNER_V3_PAYMENT_PATH . '/refund',
+            'POS_CANCEL'   => self::PARTNER_V3_PAYMENT_PATH . '/cancellation',
         ];
     }
 
     /**
-     * Cancels a pending payment.
-     * You can cancel a transaction if the payment status is in unknown state after 30 seconds.
-     * Payments that are successfully charged cannot be cancelled; use the refund method instead.
+     * A cancellation request can be made using the Cancellation API in the following scenarios:
+     * 1. When a consumer decides to cancel a Grab payment at a self-service terminal.
+     * 2. When a cashier needs to cancel a Grab payment.
+     * 3. When a transaction is not completed before paymentExpiryTime.
      *
-     * @param CancelTxnParams $cancelTxnParams Params
+     * @param CancelParams $cancelParams Params
      *
-     * @return CancelTxnResponse|ErrorResponse
+     * @return CancelResponse|ErrorResponse
      */
-    public function cancel(CancelTxnParams $cancelTxnParams): Response
+    public function cancel(CancelParams $cancelParams): Response
     {
-        $url = str_replace('{origPartnerTxID}', $cancelTxnParams->origPartnerTxID, $this->apiPaths['POS_CANCEL_TRANSACTION']);
+        $requestBody = $cancelParams->toArray();
 
-        $requestBody = [
-            'currency' => $cancelTxnParams->currency,
-            'msgID'    => $cancelTxnParams->msgID,
-        ];
-
-        return $this->sendPutRequest(CancelTxnResponse::class, $url, $requestBody);
+        return $this->sendPutRequest(CancelResponse::class, $this->apiPaths['POS_CANCEL'], $requestBody);
     }
 
     /**
-     * Use this endpoint to accept payments using the Merchant Presented QR (MPQR) code.
-     * This endpoint creates a payment order with a unique reference txID and returns a QR code string encoded with the merchant detail, amount, and txID.
+     * The Payment Initiate API allows a merchant to initiate both a Merchant Present QR (MPQR), and well as a Consumer Present QR payment (CPQR).
      *
-     * @param CreateQrCodeParams $createQrCodeParams Params
+     * @param InitiateParams $initiateParams Params
      *
-     * @return CreateQrCodeResponse|ErrorResponse
+     * @return ErrorResponse|InitiateResponse
      */
-    public function createQrCode(CreateQrCodeParams $createQrCodeParams): Response
+    public function initiate(InitiateParams $initiateParams): Response
     {
-        $requestBody = [
-            'amount'      => $createQrCodeParams->amount,
-            'currency'    => $createQrCodeParams->currency,
-            'msgID'       => $createQrCodeParams->msgID,
-            'partnerTxID' => $createQrCodeParams->partnerTxID,
-        ];
+        $requestBody = $initiateParams->toArray();
 
-        return $this->sendPostRequest(CreateQrCodeResponse::class, $this->apiPaths['POS_CREATE_QR_CODE'], $requestBody);
+        return $this->sendPostRequest(InitiateResponse::class, $this->apiPaths['POS_INITIATE'], $requestBody);
     }
 
     /**
-     * Returns the refund transaction details.
+     * The Inquiry API allows the merchant to perform the following checks:
+     * 1. When an ongoing transaction is in PENDING status, and merchant has yet to receive a terminal transaction status (SUCCESS / FAILURE).
+     * 2. When merchant needs to check the details of a historical transaction.
+     * Merchants are to implement rate limiting when making an inquiry call.
      *
-     * @param GetTxnDetailsParams $getTxnDetailsParams Params
+     * Merchant will need to implement rate limiting feature, and restrict to a maximum of 50 API calls per second per Partner ID. This will help avoid unnecessary HTTP 429 response status.
+     * When using the Inquiry API poll for PENDING transactions, merchants are advised to rate limit to 1 Inquiry API call per second per transaction.
      *
-     * @return ErrorResponse|GetTxnDetailsResponse
+     * @param InquiryParams $inquiryParams Params
+     *
+     * @return ErrorResponse|InquiryResponse
      */
-    public function getRefundDetails(GetTxnDetailsParams $getTxnDetailsParams): Response
+    public function inquiry(InquiryParams $inquiryParams): Response
     {
-        $url = str_replace('{partnerTxID}', $getTxnDetailsParams->partnerTxID, $this->apiPaths['POS_GET_TXN_DETAIL']);
-        $url = $url . '?' . http_build_query([
-            'currency' => $getTxnDetailsParams->currency,
-            'msgID'    => $getTxnDetailsParams->msgID,
-            'txType'   => 'Refund',
-        ]);
+        $params = $this->dot($this->prefixIds($inquiryParams->toArray()));
+        $url = $this->apiPaths['POS_INQUIRY'] . '?' . http_build_query($params);
 
-        return $this->sendGetRequest(GetTxnDetailsResponse::class, $url);
+        return $this->sendGetRequest(InquiryResponse::class, $url);
     }
 
     /**
-     * Returns the payment transaction details.
+     * A refund request can be made for a payment transaction. The Refund API supports the following refunds:
+     * 1. Partial refund.
+     * 2. Full refund.
+     * Merchants will need to provide the original payment partnerTxID in the originPartnerTxID parameter in the transactionDetails object in order to initiate a refund for a specific payment.
      *
-     * @param GetTxnDetailsParams $getTxnDetailsParams Params
+     * The refund validity is 90 days from the date of payment.
      *
-     * @return ErrorResponse|GetTxnDetailsResponse
+     * @param RefundParams $refundParams Params
+     *
+     * @return ErrorResponse|RefundResponse
      */
-    public function getTxnDetails(GetTxnDetailsParams $getTxnDetailsParams): Response
+    public function refund(RefundParams $refundParams): Response
     {
-        $url = str_replace('{partnerTxID}', $getTxnDetailsParams->partnerTxID, $this->apiPaths['POS_GET_TXN_DETAIL']);
-        $url = $url . '?' . http_build_query([
-            'currency' => $getTxnDetailsParams->currency,
-            'msgID'    => $getTxnDetailsParams->msgID,
-            'txType'   => 'P2M',
-        ]);
+        $requestBody = $refundParams->toArray();
 
-        return $this->sendGetRequest(GetTxnDetailsResponse::class, $url);
-    }
-
-    /**
-     * Use this endpoint to accept payments from a Consumer Presented QR (CPQR) code.
-     * The endpoint performs a payment transaction based on the consumer presented QR code.
-     * The transaction initiates a charge on the wallet associated with the requested QR code and completes a payout to the merchant Grab ID.
-     *
-     * @param PerformQrCodeTxnParams $performQrCodeTxnParams Params
-     *
-     * @return ErrorResponse|PerformQrCodeTxnResponse
-     */
-    public function performQrCode(PerformQrCodeTxnParams $performQrCodeTxnParams): Response
-    {
-        $requestBody = [
-            'amount'      => $performQrCodeTxnParams->amount,
-            'code'        => $performQrCodeTxnParams->code,
-            'currency'    => $performQrCodeTxnParams->currency,
-            'msgID'       => $performQrCodeTxnParams->msgID,
-            'partnerTxID' => $performQrCodeTxnParams->partnerTxID,
-        ];
-
-        return $this->sendPostRequest(PerformQrCodeTxnResponse::class, $this->apiPaths['POS_PERFORM_TRANSACTION'], $requestBody);
-    }
-
-    /**
-     * Refunds a previously successful payment.
-     * Returns a unique refund reference txID for this request.
-     * You can refund:
-     * 1. A transaction's full amount.
-     * 2. A partial amount if the full amount of the transaction was paid using GrabPay.
-     * 3. Multiple (partial) amounts as long as their sum doesn't exceed the charged amount.
-     *
-     * You can request refund for only charges that were generated since the last 30 days.
-     *
-     * @param RefundTxnParams $refundTxnParams Params
-     *
-     * @return ErrorResponse|RefundTxnResponse
-     */
-    public function refund(RefundTxnParams $refundTxnParams): Response
-    {
-        $url = str_replace('{origPartnerTxID}', $refundTxnParams->origPartnerTxID, $this->apiPaths['POS_REFUND_TRANSACTION']);
-
-        $requestBody = [
-            'amount'      => $refundTxnParams->amount,
-            'currency'    => $refundTxnParams->currency,
-            'msgID'       => $refundTxnParams->msgID,
-            'partnerTxID' => $refundTxnParams->partnerTxID,
-            'reason'      => $refundTxnParams->reason,
-        ];
-
-        return $this->sendPutRequest(RefundTxnResponse::class, $url, $requestBody);
-    }
-
-    /**
-     * Prepare GET request API path.
-     * For offline, we need to append grabID and terminalID to all GET requests.
-     *
-     * @param string $apiPath API path
-     */
-    protected function prepareGetRequestPath(string $apiPath): string
-    {
-        $url_parts = parse_url($apiPath);
-        parse_str($url_parts['query'], $url_parts_query_array);
-
-        return $url_parts['path'] . '?' . http_build_query(array_merge($url_parts_query_array, $this->getIds()));
+        return $this->sendPutRequest(RefundResponse::class, $this->apiPaths['POS_REFUND'], $requestBody);
     }
 
     /**
@@ -197,17 +162,53 @@ class MerchantIntegrationOffline extends MerchantIntegration
      */
     protected function prepareRequestBody(array $requestBody): array
     {
-        return array_merge($requestBody, $this->getIds());
+        return $this->prefixIds($requestBody);
     }
 
     /**
-     * Return grabID and terminalID to be added to GET request path and POST/PUT request body.
+     * Flatten a multi-dimensional associative array with dots.
+     *
+     * @param array $array Array to flatten to dot notation
      */
-    private function getIds(): array
+    private function dot(array $array, string $prepend = ''): array
     {
-        return [
-            'grabID'     => $this->merchantID,
-            'terminalID' => $this->terminalID,
+        $results = [];
+
+        foreach ($array as $key => $value) {
+            if (\is_array($value) && ! empty($value)) {
+                $results = array_merge($results, $this->dot($value, $prepend . $key . '.'));
+            } else {
+                $results[$prepend . $key] = $value;
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Return storeGrabID and terminalID to be added to GET request path and POST/PUT request body.
+     *
+     * @param array $body Body of the payload to prefix the IDs with
+     */
+    private function prefixIds(array $body): array
+    {
+        $ids = [
+            'transactionDetails' => [
+                'storeGrabID' => $this->merchantID,
+            ],
+            'POSDetails' => [
+                'terminalID' => $this->terminalID,
+            ],
         ];
+
+        foreach ($ids as $key => $value) {
+            if (isset($body[$key])) {
+                $body[$key] = array_merge($body[$key], $value);
+            } else {
+                $body[$key] = $value;
+            }
+        }
+
+        return $body;
     }
 }

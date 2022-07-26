@@ -4,40 +4,32 @@ declare(strict_types=1);
 
 namespace GrabPay\Merchant\Models;
 
+use GrabPay\Merchant\Models\Offline\StatusDetails;
+
 class ErrorData extends DTO
 {
     /**
-     * Arg
-     */
-    public ?string $arg;
-
-    /**
-     * Error code
+     * Online: code.
      */
     public ?int $code;
 
     /**
-     * Debug message
-     */
-    public ?string $devMessage;
-
-    /**
-     * Returned when there is an OAuth error.
+     * Online: Returned when there is an OAuth error.
      */
     public ?string $error;
 
     /**
-     * Returned when there is an OAuth error.
+     * Online: Returned when there is an OAuth error.
      */
     public ?string $error_description;
 
     /**
-     * Returned when there is an error for Online
+     * Online: Returned when there is an error.
      */
     public ?string $message;
 
     /**
-     * Error reason
+     * Offline v3.
      */
-    public ?string $reason;
+    public ?StatusDetails $statusDetails;
 }

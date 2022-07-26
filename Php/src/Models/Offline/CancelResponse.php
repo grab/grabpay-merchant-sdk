@@ -6,7 +6,7 @@ namespace GrabPay\Merchant\Models\Offline;
 
 use GrabPay\Merchant\Models\Response;
 
-class CancelTxnResponse extends Response
+class CancelResponse extends Response
 {
-    public ?CancelTxnData $data;
+    public CancelData $data;
 }
