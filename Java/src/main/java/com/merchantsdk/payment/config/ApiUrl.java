@@ -8,11 +8,10 @@ import com.merchantsdk.payment.Country;
 public class ApiUrl {
         public static enum ApiEndpoint {
                 OAUTH_TOKEN,
-                POS_CREATE_QR_CODE,
-                POS_CANCEL_TRANSACTION,
-                POS_REFUND_TRANSACTION,
-                POS_PERFORM_TRANSACTION,
-                POS_TRANSACTION_DETAILS,
+                POS_INITIATE,
+                POS_INQUIRY,
+                POS_REFUND,
+                POS_CANCEL,
 
                 ONA_CHARGE_INIT,
                 ONA_CHARGE_COMPLETE,
@@ -28,16 +27,14 @@ public class ApiUrl {
                                 {
                                         put(ApiEndpoint.OAUTH_TOKEN, "/grabid/v1/oauth2/token");
 
-                                        put(ApiEndpoint.POS_CREATE_QR_CODE,
-                                                        "/mocapay/partners/v1/terminal/qrcode/create");
-                                        put(ApiEndpoint.POS_CANCEL_TRANSACTION,
-                                                        "/mocapay/partners/v1/terminal/transaction/{origPartnerTxID}/cancel");
-                                        put(ApiEndpoint.POS_REFUND_TRANSACTION,
-                                                        "/mocapay/partners/v1/terminal/transaction/{origPartnerTxID}/refund");
-                                        put(ApiEndpoint.POS_PERFORM_TRANSACTION,
-                                                        "/mocapay/partners/v1/terminal/transaction/perform");
-                                        put(ApiEndpoint.POS_TRANSACTION_DETAILS,
-                                                        "/mocapay/partners/v1/terminal/transaction/{partnerTxID}");
+                                        put(ApiEndpoint.POS_INITIATE,
+                                                        "/mocapay/partner/v3/payment/init");
+                                        put(ApiEndpoint.POS_INQUIRY,
+                                                        "/mocapay/partner/v3/payment/inquiry");
+                                        put(ApiEndpoint.POS_REFUND,
+                                                        "/mocapay/partner/v3/payment/refund");
+                                        put(ApiEndpoint.POS_CANCEL,
+                                                        "/mocapay/partner/v3/payment/cancellation");
 
                                         put(ApiEndpoint.ONA_CHARGE_INIT, "/mocapay/partner/v2/charge/init");
                                         put(ApiEndpoint.ONA_CHARGE_COMPLETE, "/mocapay/partner/v2/charge/complete");
@@ -57,16 +54,14 @@ public class ApiUrl {
                 {
                         put(ApiEndpoint.OAUTH_TOKEN, "/grabid/v1/oauth2/token");
 
-                        put(ApiEndpoint.POS_CREATE_QR_CODE,
-                                        "/grabpay/partner/v1/terminal/qrcode/create");
-                        put(ApiEndpoint.POS_CANCEL_TRANSACTION,
-                                        "/grabpay/partner/v1/terminal/transaction/{origPartnerTxID}/cancel");
-                        put(ApiEndpoint.POS_REFUND_TRANSACTION,
-                                        "/grabpay/partner/v1/terminal/transaction/{origPartnerTxID}/refund");
-                        put(ApiEndpoint.POS_PERFORM_TRANSACTION,
-                                        "/grabpay/partner/v1/terminal/transaction/perform");
-                        put(ApiEndpoint.POS_TRANSACTION_DETAILS,
-                                        "/grabpay/partner/v1/terminal/transaction/{partnerTxID}");
+                        put(ApiEndpoint.POS_INITIATE,
+                                        "/grabpay/partner/v3/payment/init");
+                        put(ApiEndpoint.POS_INQUIRY,
+                                        "/grabpay/partner/v3/payment/inquiry");
+                        put(ApiEndpoint.POS_REFUND,
+                                        "/grabpay/partner/v3/payment/refund");
+                        put(ApiEndpoint.POS_CANCEL,
+                                        "/grabpay/partner/v3/payment/cancellation");
 
                         put(ApiEndpoint.ONA_CHARGE_INIT, "/grabpay/partner/v2/charge/init");
                         put(ApiEndpoint.ONA_CHARGE_COMPLETE,

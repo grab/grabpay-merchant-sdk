@@ -21,7 +21,6 @@ public class HmacPopSigner {
     /**
      * Build X-GID-AUX-POP HMAC signature for given access token and timestamp
      * 
-     * @param config      - Config instance
      * @param accessToken - access_token, which get from authorization server
      * @param unixTime    - timestamp as unix
      * @return String

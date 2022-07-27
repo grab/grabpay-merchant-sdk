@@ -2,11 +2,19 @@ package com.merchantsdk.payment;
 
 import com.merchantsdk.payment.config.EnvironmentType;
 import com.merchantsdk.payment.config.PosConfig;
+import com.merchantsdk.payment.models.PosCancelRequest;
+import com.merchantsdk.payment.models.PosCancelResponse;
+import com.merchantsdk.payment.models.PosInitiateRequest;
+import com.merchantsdk.payment.models.PosInitiateResponse;
+import com.merchantsdk.payment.models.PosInquiryRequest;
+import com.merchantsdk.payment.models.PosInquiryResponse;
+import com.merchantsdk.payment.models.PosRefundRequest;
+import com.merchantsdk.payment.models.PosRefundResponse;
 import com.merchantsdk.payment.service.OfflineTransaction;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.json.JSONObject;
 
-public class MerchantIntegrationOffline extends MerchantIntegration {
+public class MerchantIntegrationOffline extends MerchantIntegration<PosConfig> {
 
     private final OfflineTransaction offlineTransaction;
 
@@ -16,40 +24,48 @@ public class MerchantIntegrationOffline extends MerchantIntegration {
         this.offlineTransaction = new OfflineTransaction((PosConfig) this.getConfig());
     }
 
-    public JSONObject createQrCode(String msgID, String partnerTxID, long amount, String currency) {
-        CloseableHttpResponse response = this.offlineTransaction.createQrCode(msgID, partnerTxID, amount, currency);
-        return processResponse(response);
+    protected void populateTerminalID(JSONObject requestBody) {
+        if (requestBody.has("POSDetails")) {
+            requestBody.getJSONObject("POSDetails").put("terminalID", this.getConfig().getTerminalId());
+        } else {
+            requestBody.put("POSDetails", new JSONObject().put("terminalID", this.getConfig().getTerminalId()));
+        }
     }
 
-    public JSONObject performQrCode(String msgID, String partnerTxID, long amount, String currency, String code) {
-        CloseableHttpResponse response = this.offlineTransaction.performTxn(msgID, partnerTxID, amount, currency,
-                code);
-        return processResponse(response);
+    protected void populateStoreGrabId(JSONObject requestBody) {
+        if (requestBody.has("transactionDetails")) {
+            requestBody.getJSONObject("transactionDetails").put("storeGrabID", this.getConfig().getMerchantId());
+        } else {
+            requestBody.put("transactionDetails",
+                    new JSONObject().put("storeGrabID", this.getConfig().getMerchantId()));
+        }
     }
 
-    public JSONObject cancel(String msgID, String partnerTxID, String origPartnerTxID, String origTxID,
-            String currency) {
-        CloseableHttpResponse response = this.offlineTransaction.cancelTxn(msgID, partnerTxID, origPartnerTxID,
-                origTxID, currency);
-        return processResponse(response);
+    public PosInitiateResponse initiate(PosInitiateRequest request) {
+        JSONObject requestBody = new JSONObject(request);
+        populateTerminalID(requestBody);
+        populateStoreGrabId(requestBody);
+        CloseableHttpResponse response = this.offlineTransaction.initiate(requestBody);
+        return convertResponseToObj(response, PosInitiateResponse.class);
     }
 
-    public JSONObject refund(String msgID, String partnerTxID, long amount, String currency,
-            String origPartnerTxID, String description) {
-        CloseableHttpResponse response = this.offlineTransaction.refundTxn(msgID, partnerTxID, amount,
-                currency, origPartnerTxID, description);
-        return processResponse(response);
+    public PosCancelResponse cancel(PosCancelRequest request) {
+        JSONObject requestBody = new JSONObject(request);
+        populateStoreGrabId(requestBody);
+        CloseableHttpResponse response = this.offlineTransaction.cancel(requestBody);
+        return convertResponseToObj(response, PosCancelResponse.class);
     }
 
-    public JSONObject getTxnDetails(String msgID, String partnerTxID, String currency) {
-        CloseableHttpResponse response = this.offlineTransaction.getTxnStatus(msgID, partnerTxID, currency);
-        return processResponse(response);
+    public PosRefundResponse refund(PosRefundRequest request) {
+        JSONObject requestBody = new JSONObject(request);
+        CloseableHttpResponse response = this.offlineTransaction.refund(requestBody);
+        return convertResponseToObj(response, PosRefundResponse.class);
     }
 
-    public JSONObject getRefundDetails(String msgID, String partnerTxID, String currency) {
-        CloseableHttpResponse response = this.offlineTransaction.getRefundStatus(msgID, partnerTxID,
-                currency);
-        return processResponse(response);
+    public PosInquiryResponse inquire(PosInquiryRequest request) {
+        JSONObject requestBody = new JSONObject(request);
+        CloseableHttpResponse response = this.offlineTransaction.inquire(requestBody);
+        return convertResponseToObj(response, PosInquiryResponse.class);
     }
 
 }

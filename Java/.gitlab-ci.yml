@@ -3,19 +3,28 @@ workflow:
     - if: $CI_MERGE_REQUEST_ID
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-image: gradle:jdk8
-
 stages:
-  - build
+  - test
 
-build_Java:
-  stage: build
+.job-defaults:
+  image: $CONTAINER_IMAGE
   before_script:
-    - set -a; source $STG_INTEGRATION_KEYS; set +a
     - cd Java
+    - set -a; source $STG_INTEGRATION_KEYS; set +a
     - touch gradle.properties
     - cat "$GRADLE_PROPERTIES" > ./gradle.properties
+  parallel:
+    matrix:
+      - CONTAINER_IMAGE: 
+        - gradle:jdk8
+        - gradle:jdk11
+        - gradle:jdk17
+        - gradle:jdk18
+  
+test_Java:
+  extends: .job-defaults
+  stage: test
   script:
-    - gradle build --stacktrace
+    - gradle test --stacktrace
 
 
