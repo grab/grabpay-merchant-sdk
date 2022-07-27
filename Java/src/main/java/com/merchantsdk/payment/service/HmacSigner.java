@@ -28,7 +28,6 @@ public class HmacSigner {
     /**
      * Build HMAC signature for a request
      * 
-     * @param unixTime : given created request time (java.time.Instant)
      * @return hash value of sign
      */
     public String buildHmacSignature(

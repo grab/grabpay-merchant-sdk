@@ -6,7 +6,7 @@ import com.merchantsdk.payment.service.OnlineTransaction;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.json.JSONObject;
 
-public class MerchantIntegrationOnline extends MerchantIntegration {
+public class MerchantIntegrationOnline extends MerchantIntegration<OtcConfig> {
 
     private final OnlineTransaction onlineTransaction;
 
@@ -15,7 +15,7 @@ public class MerchantIntegrationOnline extends MerchantIntegration {
             String merchantId, String clientId, String clientSecret, String redirectUrl) {
         super(new OtcConfig(environment, country, partnerId, partnerSecret, merchantId, clientId, clientSecret,
                 redirectUrl));
-        this.onlineTransaction = new OnlineTransaction((OtcConfig) this.getConfig());
+        this.onlineTransaction = new OnlineTransaction(this.getConfig());
     }
 
     public JSONObject chargeInit(String partnerTxID, String partnerGroupTxID, long amount, String currency,
@@ -23,7 +23,7 @@ public class MerchantIntegrationOnline extends MerchantIntegration {
             String[] hidePaymentMethods) {
         CloseableHttpResponse response = this.onlineTransaction.chargeInit(partnerTxID, partnerGroupTxID, amount,
                 currency, description, metaInfo, items, shippingDetails, hidePaymentMethods);
-        return processResponse(response);
+        return convertResponseToObj(response);
     }
 
     public String generateWebUrl(String partnerTxID, String partnerGroupTxID, long amount, String currency,
@@ -37,34 +37,34 @@ public class MerchantIntegrationOnline extends MerchantIntegration {
 
     public JSONObject getOAuth2Token(String code, String codeVerifier) {
         CloseableHttpResponse response = this.onlineTransaction.getOAuth2Token(code, codeVerifier);
-        return processResponse(response);
+        return convertResponseToObj(response);
     }
 
     public JSONObject chargeComplete(String partnerTxID, String accessToken) {
         CloseableHttpResponse response = this.onlineTransaction.chargeComplete(partnerTxID, accessToken);
-        return processResponse(response);
+        return convertResponseToObj(response);
     }
 
     public JSONObject getChargeStatus(String partnerTxID, String currency, String accessToken) {
         CloseableHttpResponse response = this.onlineTransaction.getChargeStatus(partnerTxID, currency, accessToken);
-        return processResponse(response);
+        return convertResponseToObj(response);
     }
 
     public JSONObject refund(String partnerTxID, String partnerGroupTxID, long amount, String currency,
             String txID, String description, String accessToken) {
         CloseableHttpResponse response = this.onlineTransaction.refundTxn(partnerTxID, partnerGroupTxID,
                 amount, currency, txID, description, accessToken);
-        return processResponse(response);
+        return convertResponseToObj(response);
     }
 
     public JSONObject getRefundStatus(String partnerTxID, String currency, String accessToken) {
         CloseableHttpResponse response = this.onlineTransaction.getRefundStatus(partnerTxID, currency,
                 accessToken);
-        return processResponse(response);
+        return convertResponseToObj(response);
     }
 
     public JSONObject getOtcStatus(String partnerTxID, String currency) {
         CloseableHttpResponse response = this.onlineTransaction.getOtcStatus(partnerTxID, currency);
-        return processResponse(response);
+        return convertResponseToObj(response);
     }
 }

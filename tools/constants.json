@@ -56,6 +56,11 @@
           "suffix": "\";"
         },
         {
+          "path": "Java/src/test/java/unit/TestMockMerchantOffline.java",
+          "prefix": "\"X-Sdk-Version\",\\s+\"",
+          "suffix": "\"\\);"
+        },
+        {
           "path": "Net/src/Net.csproj",
           "prefix": "\\<Version\\>",
           "suffix": "\\</Version\\>"
@@ -115,6 +120,11 @@
           "path": "Java/src/main/java/com/merchantsdk/payment/config/SdkEnvironment.java",
           "prefix": "String SDK_SIGNATURE\\s+=\\s+\"",
           "suffix": "\";"
+        },
+        {
+          "path": "Java/src/test/java/unit/TestMockMerchantOffline.java",
+          "prefix": "\"X-Sdk-Signature\",\\s+\"",
+          "suffix": "\"\\);"
         },
         {
           "path": "Net/src/Public/MerchantConfiguration.cs",

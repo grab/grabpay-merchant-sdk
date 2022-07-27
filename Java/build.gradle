@@ -21,7 +21,7 @@ dependencies {
     // https://mvnrepository.com/artifact/commons-codec/commons-codec
     implementation group: 'commons-codec', name: 'commons-codec', version: '1.5'
 
-    api 'org.json:json:20210307'
+    api 'org.json:json:20220320'
 
     // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore
     implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.3.3'
@@ -37,6 +37,8 @@ dependencies {
 
     // https://mvnrepository.com/artifact/org.apache.commons/commons-text
     implementation group: 'org.apache.commons', name: 'commons-text', version: '1.9'
+
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.3'
 
     testImplementation('org.junit.jupiter:junit-jupiter:5.8.1')
     // https://mvnrepository.com/artifact/org.mockito/mockito-core
@@ -54,11 +56,11 @@ dependencies {
 
 test {
     useJUnitPlatform()
-    testLogging.showStandardStreams = true
 
     environment = env.allVariables
 	testLogging {
-		events "failed"
+        showStandardStreams true
+        events "passed", "skipped", "failed"
 		exceptionFormat "full"
 	}
 }
@@ -112,7 +114,7 @@ publishing {
                     // https://mvnrepository.com/artifact/commons-codec/commons-codec
                     implementation group: 'commons-codec', name: 'commons-codec', version: '1.5'
 
-                    api 'org.json:json:20210307'
+                    api 'org.json:json:20220320'
 
                     // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore
                     implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.3.3'
@@ -130,7 +132,7 @@ publishing {
                     implementation group: 'org.apache.commons', name: 'commons-text', version: '1.9'
 
                     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
-                    compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.0'
+                    compileOnly group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.3'
                     compileOnly group: 'jakarta.json.bind', name: 'jakarta.json.bind-api', version: '2.0.0'
                     testImplementation group: 'org.eclipse', name: 'yasson', version: '2.0.2'
                 }
