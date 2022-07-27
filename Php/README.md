@@ -12,15 +12,23 @@ We are refering `ONA` as `Online` and `POS` as `Offline`.
 
 ## Installation
 
-1. Download [grab/grabpay-merchant-sdk](https://github.com/grab/grabpay-merchant-sdk/archive/refs/heads/main.zip).
-2. Extract contents of `grabpay-merchant-sdk-main.zip` to `~/Downloads/grabpay-merchant-sdk`.
-3. In your project `composer.json`, add the following lines.
+1. Download and unzip [grab/grabpay-merchant-sdk](https://github.com/grab/grabpay-merchant-sdk/archive/refs/heads/main.zip).
+
+```bash
+# Download and unzip grabpay-merchant-sdk
+curl --location https://github.com/grab/grabpay-merchant-sdk/archive/refs/heads/main.zip --output ./grabpay-merchant-sdk.zip
+
+# Replace /path/to/project with the actual path to your project
+unzip ./grabpay-merchant-sdk.zip /path/to/project
+```
+
+2. In your project `composer.json`, add the following lines and replace `/path/to/project` with the actual path to your project.
 
 ```bash
 "repositories": [
     {
         "type": "path",
-        "url": "~/Downloads/grabpay-merchant-sdk/Php",
+        "url": "/path/to/project/grabpay-merchant-sdk-main/Php",
         "options": {
             "symlink": false
         }
@@ -28,7 +36,7 @@ We are refering `ONA` as `Online` and `POS` as `Offline`.
 ],
 ```
 
-4. Run the following command to include `grab/grabpay-merchant-sdk` to your project.
+3. Run the following command to include `grab/grabpay-merchant-sdk` to your project.
 
 ```bash
 composer require grab/grabpay-merchant-sdk dev-main
