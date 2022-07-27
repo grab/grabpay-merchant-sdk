@@ -1,12 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MerchantIntegrationOffline cancel use generated msgID 1`] = `
+exports[`MerchantIntegrationOffline cancel payment should work in happy path 1`] = `
 Array [
   Array [
     Object {
-      "data": "{\\"partnerTxID\\":\\"ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k\\",\\"origTxID\\":\\"txID\\",\\"currency\\":\\"VND\\",\\"msgID\\":\\"generated-msgID\\",\\"grabID\\":\\"merchant-id\\",\\"terminalID\\":\\"terminal-id\\"}",
+      "data": "{\\"transactionDetails\\":{\\"paymentChannel\\":\\"CPQR\\",\\"originPartnerTxID\\":\\"ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k\\",\\"currency\\":\\"VND\\",\\"storeGrabID\\":\\"merchant-id\\"}}",
       "headers": Object {
-        "Authorization": "partner-id:OPRHW3x99MJkMKwtmgl273yjJ8a/E+85WwfVVRyQfUs=",
+        "Authorization": "partner-id:obvji4Uq1bwZYXr7D9+26t6JsoxLRw6+1S1yz92DhRg=",
         "Content-Type": "application/json",
         "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
         "X-Sdk-Country": "VN",
@@ -15,40 +15,19 @@ Array [
         "X-Sdk-Version": "2.0.0",
       },
       "method": "PUT",
-      "url": "/mocapay/partners/v1/terminal/transaction/fBTcFk0T1OekPrLtbQoiIB33TyzwrWZl/cancel",
+      "url": "/mocapay/partner/v3/payment/cancellation",
     },
   ],
 ]
 `;
 
-exports[`MerchantIntegrationOffline cancel use provided msgID 1`] = `
+exports[`MerchantIntegrationOffline initiate payment should work in happy path 1`] = `
 Array [
   Array [
     Object {
-      "data": "{\\"partnerTxID\\":\\"ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k\\",\\"origTxID\\":\\"txID\\",\\"currency\\":\\"VND\\",\\"msgID\\":\\"provided-msgID\\",\\"grabID\\":\\"merchant-id\\",\\"terminalID\\":\\"terminal-id\\"}",
+      "data": "{\\"transactionDetails\\":{\\"paymentChannel\\":\\"CPQR\\",\\"partnerTxID\\":\\"ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k\\",\\"billRefNumber\\":\\"123\\",\\"amount\\":10000,\\"currency\\":\\"VND\\",\\"paymentExpiryTime\\":0,\\"storeGrabID\\":\\"merchant-id\\"},\\"POSDetails\\":{\\"terminalID\\":\\"terminal-id\\"}}",
       "headers": Object {
-        "Authorization": "partner-id:40+XN6V8sXvUgiONqvlbSUotUZf9uBiwXZ1h96ttgh4=",
-        "Content-Type": "application/json",
-        "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
-        "X-Sdk-Country": "VN",
-        "X-Sdk-Language": "nodejs",
-        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
-        "X-Sdk-Version": "2.0.0",
-      },
-      "method": "PUT",
-      "url": "/mocapay/partners/v1/terminal/transaction/fBTcFk0T1OekPrLtbQoiIB33TyzwrWZl/cancel",
-    },
-  ],
-]
-`;
-
-exports[`MerchantIntegrationOffline createQrCode use generated msgID 1`] = `
-Array [
-  Array [
-    Object {
-      "data": "{\\"partnerTxID\\":\\"ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k\\",\\"amount\\":100000,\\"currency\\":\\"VND\\",\\"msgID\\":\\"generated-msgID\\",\\"grabID\\":\\"merchant-id\\",\\"terminalID\\":\\"terminal-id\\"}",
-      "headers": Object {
-        "Authorization": "partner-id:N10r30Jwv6OUWEIo81IiyNWYUnjlWazBhf2vjJI5wOg=",
+        "Authorization": "partner-id:OKdDWxIMh5qK6rdVMQA79J/TRHOjkKr1YVT3UlDl24E=",
         "Content-Type": "application/json",
         "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
         "X-Sdk-Country": "VN",
@@ -57,39 +36,18 @@ Array [
         "X-Sdk-Version": "2.0.0",
       },
       "method": "POST",
-      "url": "/mocapay/partners/v1/terminal/qrcode/create",
+      "url": "/mocapay/partner/v3/payment/init",
     },
   ],
 ]
 `;
 
-exports[`MerchantIntegrationOffline createQrCode use provided msgID 1`] = `
-Array [
-  Array [
-    Object {
-      "data": "{\\"partnerTxID\\":\\"ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k\\",\\"amount\\":100000,\\"currency\\":\\"VND\\",\\"msgID\\":\\"provided-msgID\\",\\"grabID\\":\\"merchant-id\\",\\"terminalID\\":\\"terminal-id\\"}",
-      "headers": Object {
-        "Authorization": "partner-id:CBsc+9xiXgpdlT5n9KFyKHvfaPhqwSvk2M6xaWbimGU=",
-        "Content-Type": "application/json",
-        "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
-        "X-Sdk-Country": "VN",
-        "X-Sdk-Language": "nodejs",
-        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
-        "X-Sdk-Version": "2.0.0",
-      },
-      "method": "POST",
-      "url": "/mocapay/partners/v1/terminal/qrcode/create",
-    },
-  ],
-]
-`;
-
-exports[`MerchantIntegrationOffline getRefundDetails use generated msgID 1`] = `
+exports[`MerchantIntegrationOffline inquire payment should work in happy path 1`] = `
 Array [
   Array [
     Object {
       "headers": Object {
-        "Authorization": "partner-id:UxYDKjb5AirCkx6bnmua15XutXVwuUfj/brU0iBiOzI=",
+        "Authorization": "partner-id:oktH4LFWHG1gpkr0JjufpQ2HBtoS0VgWXhz/7DdWVaA=",
         "Content-Type": "application/json",
         "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
         "X-Sdk-Country": "VN",
@@ -99,148 +57,26 @@ Array [
       },
       "method": "GET",
       "params": Object {
-        "currency": "VND",
-        "grabID": "merchant-id",
-        "msgID": "generated-msgID",
-        "terminalID": "terminal-id",
-        "txType": "Refund",
+        "transactionDetails.currency": "VND",
+        "transactionDetails.paymentChannel": "CPQR",
+        "transactionDetails.storeGrabID": "merchant-id",
+        "transactionDetails.txID": "123",
+        "transactionDetails.txRefType": "GRABTXID",
+        "transactionDetails.txType": "PAYMENT",
       },
-      "url": "/mocapay/partners/v1/terminal/transaction/ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k",
+      "url": "/mocapay/partner/v3/payment/inquiry",
     },
   ],
 ]
 `;
 
-exports[`MerchantIntegrationOffline getRefundDetails use provided msgID 1`] = `
+exports[`MerchantIntegrationOffline refund payment should work in happy path 1`] = `
 Array [
   Array [
     Object {
+      "data": "{\\"transactionDetails\\":{\\"paymentChannel\\":\\"CPQR\\",\\"originPartnerTxID\\":\\"ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k\\",\\"partnerTxID\\":\\"ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k\\",\\"currency\\":\\"VND\\",\\"amount\\":1000,\\"reason\\":\\"goods refund\\",\\"storeGrabID\\":\\"merchant-id\\"}}",
       "headers": Object {
-        "Authorization": "partner-id:+Ey26YPUFirhI62Lew1Q9NgALzS10rZrei0CDKrtcXU=",
-        "Content-Type": "application/json",
-        "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
-        "X-Sdk-Country": "VN",
-        "X-Sdk-Language": "nodejs",
-        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
-        "X-Sdk-Version": "2.0.0",
-      },
-      "method": "GET",
-      "params": Object {
-        "currency": "VND",
-        "grabID": "merchant-id",
-        "msgID": "provided-msgID",
-        "terminalID": "terminal-id",
-        "txType": "Refund",
-      },
-      "url": "/mocapay/partners/v1/terminal/transaction/ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k",
-    },
-  ],
-]
-`;
-
-exports[`MerchantIntegrationOffline getTxnDetails use generated msgID 1`] = `
-Array [
-  Array [
-    Object {
-      "headers": Object {
-        "Authorization": "partner-id:nbBDLgh4UgE7JJzqH/kxYjEnwuFWV010Imss5cLPqMU=",
-        "Content-Type": "application/json",
-        "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
-        "X-Sdk-Country": "VN",
-        "X-Sdk-Language": "nodejs",
-        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
-        "X-Sdk-Version": "2.0.0",
-      },
-      "method": "GET",
-      "params": Object {
-        "currency": "VND",
-        "grabID": "merchant-id",
-        "msgID": "generated-msgID",
-        "terminalID": "terminal-id",
-        "txType": "P2M",
-      },
-      "url": "/mocapay/partners/v1/terminal/transaction/ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k",
-    },
-  ],
-]
-`;
-
-exports[`MerchantIntegrationOffline getTxnDetails use provided msgID 1`] = `
-Array [
-  Array [
-    Object {
-      "headers": Object {
-        "Authorization": "partner-id:eU5VECl+LeHMdrmeTXJiTsTCLIqAiSNQxNro7+wpihY=",
-        "Content-Type": "application/json",
-        "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
-        "X-Sdk-Country": "VN",
-        "X-Sdk-Language": "nodejs",
-        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
-        "X-Sdk-Version": "2.0.0",
-      },
-      "method": "GET",
-      "params": Object {
-        "currency": "VND",
-        "grabID": "merchant-id",
-        "msgID": "provided-msgID",
-        "terminalID": "terminal-id",
-        "txType": "P2M",
-      },
-      "url": "/mocapay/partners/v1/terminal/transaction/ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k",
-    },
-  ],
-]
-`;
-
-exports[`MerchantIntegrationOffline performQrCode use generated msgID 1`] = `
-Array [
-  Array [
-    Object {
-      "data": "{\\"partnerTxID\\":\\"ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k\\",\\"amount\\":100000,\\"currency\\":\\"VND\\",\\"code\\":\\"code\\",\\"msgID\\":\\"generated-msgID\\",\\"grabID\\":\\"merchant-id\\",\\"terminalID\\":\\"terminal-id\\"}",
-      "headers": Object {
-        "Authorization": "partner-id:vCDyUDIlYVK7N4eTkSMwqFcfBoAXvtiSH/pWaws/Ljs=",
-        "Content-Type": "application/json",
-        "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
-        "X-Sdk-Country": "VN",
-        "X-Sdk-Language": "nodejs",
-        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
-        "X-Sdk-Version": "2.0.0",
-      },
-      "method": "POST",
-      "url": "/mocapay/partners/v1/terminal/transaction/perform",
-    },
-  ],
-]
-`;
-
-exports[`MerchantIntegrationOffline performQrCode use provided msgID 1`] = `
-Array [
-  Array [
-    Object {
-      "data": "{\\"partnerTxID\\":\\"ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k\\",\\"amount\\":100000,\\"currency\\":\\"VND\\",\\"code\\":\\"code\\",\\"msgID\\":\\"provided-msgID\\",\\"grabID\\":\\"merchant-id\\",\\"terminalID\\":\\"terminal-id\\"}",
-      "headers": Object {
-        "Authorization": "partner-id:MerEkT0zcq2u4p4QNQH6dBMReOb48vBsnzhhEiq/odA=",
-        "Content-Type": "application/json",
-        "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
-        "X-Sdk-Country": "VN",
-        "X-Sdk-Language": "nodejs",
-        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
-        "X-Sdk-Version": "2.0.0",
-      },
-      "method": "POST",
-      "url": "/mocapay/partners/v1/terminal/transaction/perform",
-    },
-  ],
-]
-`;
-
-exports[`MerchantIntegrationOffline refund use generated msgID 1`] = `
-Array [
-  Array [
-    Object {
-      "data": "{\\"partnerTxID\\":\\"ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k\\",\\"amount\\":10000,\\"currency\\":\\"VND\\",\\"reason\\":\\"refund\\",\\"msgID\\":\\"generated-msgID\\",\\"grabID\\":\\"merchant-id\\",\\"terminalID\\":\\"terminal-id\\"}",
-      "headers": Object {
-        "Authorization": "partner-id:qMEueZX3ReliUUTa9L+iMVrGBH9BttgEpSCSx8syrwg=",
+        "Authorization": "partner-id:bpRO4TQ2P4ZccP5D4Mp4FJ+CIBv6n1VC2E7OLFnjTLE=",
         "Content-Type": "application/json",
         "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
         "X-Sdk-Country": "VN",
@@ -249,28 +85,7 @@ Array [
         "X-Sdk-Version": "2.0.0",
       },
       "method": "PUT",
-      "url": "/mocapay/partners/v1/terminal/transaction/fBTcFk0T1OekPrLtbQoiIB33TyzwrWZl/refund",
-    },
-  ],
-]
-`;
-
-exports[`MerchantIntegrationOffline refund use provided msgID 1`] = `
-Array [
-  Array [
-    Object {
-      "data": "{\\"amount\\":10000,\\"partnerTxID\\":\\"ROe9fTsr8WYuyZHsuy738QXNtfyNyj9k\\",\\"currency\\":\\"VND\\",\\"reason\\":\\"refund\\",\\"msgID\\":\\"provided-msgID\\",\\"grabID\\":\\"merchant-id\\",\\"terminalID\\":\\"terminal-id\\"}",
-      "headers": Object {
-        "Authorization": "partner-id:L2B5mWMD9ZzLI2Y2UeTFmjITVR0bjaKCCKGgjxY4fqY=",
-        "Content-Type": "application/json",
-        "Date": "Thu, 01 Jan 1970 00:00:00 GMT",
-        "X-Sdk-Country": "VN",
-        "X-Sdk-Language": "nodejs",
-        "X-Sdk-Signature": "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7",
-        "X-Sdk-Version": "2.0.0",
-      },
-      "method": "PUT",
-      "url": "/mocapay/partners/v1/terminal/transaction/fBTcFk0T1OekPrLtbQoiIB33TyzwrWZl/refund",
+      "url": "/mocapay/partner/v3/payment/refund",
     },
   ],
 ]

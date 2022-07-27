@@ -31,119 +31,62 @@ describe('MerchantIntegrationOffline', () => {
     jest.useRealTimers();
   });
 
-  describe('createQrCode', () => {
-    it('use generated msgID', async () => {
-      const generateMsgIdSpy = jest.spyOn(Utils, 'generateMsgId').mockReturnValue('generated-msgID');
-      await client.createQrCode({ partnerTxID, amount: 100000, currency: 'VND' });
-      expect(generateMsgIdSpy).toHaveBeenCalled();
-      expect(axiosRequestSpy.mock.calls).toMatchSnapshot();
-    });
-    it('use provided msgID', async () => {
-      const generateMsgIdSpy = jest.spyOn(Utils, 'generateMsgId').mockReturnValue('generated-msgID');
-      await client.createQrCode({ msgID: 'provided-msgID', partnerTxID, amount: 100000, currency: 'VND' });
-      expect(generateMsgIdSpy).not.toHaveBeenCalled();
-      expect(axiosRequestSpy.mock.calls).toMatchSnapshot();
-    });
-  });
-
-  describe('performQrCode', () => {
-    it('use generated msgID', async () => {
-      const generateMsgIdSpy = jest.spyOn(Utils, 'generateMsgId').mockReturnValue('generated-msgID');
-      await client.performQrCode({ partnerTxID, amount: 100000, currency: 'VND', code: 'code' });
-      expect(generateMsgIdSpy).toHaveBeenCalled();
-      expect(axiosRequestSpy.mock.calls).toMatchSnapshot();
-    });
-    it('use provided msgID', async () => {
-      const generateMsgIdSpy = jest.spyOn(Utils, 'generateMsgId').mockReturnValue('generated-msgID');
-      await client.performQrCode({
-        msgID: 'provided-msgID',
-        partnerTxID,
-        amount: 100000,
-        currency: 'VND',
-        code: 'code',
+  describe('initiate payment', () => {
+    it('should work in happy path', async () => {
+      await client.initiate({
+        transactionDetails: {
+          paymentChannel: 'CPQR',
+          partnerTxID,
+          billRefNumber: '123',
+          amount: 10000,
+          currency: 'VND',
+          paymentExpiryTime: 0,
+        },
       });
-      expect(generateMsgIdSpy).not.toHaveBeenCalled();
       expect(axiosRequestSpy.mock.calls).toMatchSnapshot();
     });
   });
 
-  describe('cancel', () => {
-    it('use generated msgID', async () => {
-      const generateMsgIdSpy = jest.spyOn(Utils, 'generateMsgId').mockReturnValue('generated-msgID');
-      await client.cancel({ partnerTxID, origPartnerTxID, origTxID: 'txID', currency: 'VND' });
-      expect(generateMsgIdSpy).toHaveBeenCalled();
-      expect(axiosRequestSpy.mock.calls).toMatchSnapshot();
-    });
-    it('use provided msgID', async () => {
-      const generateMsgIdSpy = jest.spyOn(Utils, 'generateMsgId').mockReturnValue('generated-msgID');
-      await client.cancel({
-        msgID: 'provided-msgID',
-        partnerTxID,
-        origPartnerTxID,
-        origTxID: 'txID',
-        currency: 'VND',
+  describe('inquire payment', () => {
+    it('should work in happy path', async () => {
+      await client.inquiry({
+        transactionDetails: {
+          paymentChannel: 'CPQR',
+          txType: 'PAYMENT',
+          currency: 'VND',
+          txRefType: 'GRABTXID',
+          txID: '123',
+        },
       });
-      expect(generateMsgIdSpy).not.toHaveBeenCalled();
       expect(axiosRequestSpy.mock.calls).toMatchSnapshot();
     });
   });
 
-  describe('refund', () => {
-    it('use generated msgID', async () => {
-      const generateMsgIdSpy = jest.spyOn(Utils, 'generateMsgId').mockReturnValue('generated-msgID');
-      await client.refund({ partnerTxID, origPartnerTxID, amount: 10000, currency: 'VND', reason: 'refund' });
-      expect(generateMsgIdSpy).toHaveBeenCalled();
-      expect(axiosRequestSpy.mock.calls).toMatchSnapshot();
-    });
-    it('use provided msgID', async () => {
-      const generateMsgIdSpy = jest.spyOn(Utils, 'generateMsgId').mockReturnValue('generated-msgID');
+  describe('refund payment', () => {
+    it('should work in happy path', async () => {
       await client.refund({
-        msgID: 'provided-msgID',
-        amount: 10000,
-        partnerTxID,
-        origPartnerTxID,
-        currency: 'VND',
-        reason: 'refund',
+        transactionDetails: {
+          paymentChannel: 'CPQR',
+          originPartnerTxID: partnerTxID,
+          partnerTxID,
+          currency: 'VND',
+          amount: 1000,
+          reason: 'goods refund',
+        },
       });
-      expect(generateMsgIdSpy).not.toHaveBeenCalled();
       expect(axiosRequestSpy.mock.calls).toMatchSnapshot();
     });
   });
 
-  describe('getTxnDetails', () => {
-    it('use generated msgID', async () => {
-      const generateMsgIdSpy = jest.spyOn(Utils, 'generateMsgId').mockReturnValue('generated-msgID');
-      await client.getTxnDetails({ partnerTxID, currency: 'VND' });
-      expect(generateMsgIdSpy).toHaveBeenCalled();
-      expect(axiosRequestSpy.mock.calls).toMatchSnapshot();
-    });
-    it('use provided msgID', async () => {
-      const generateMsgIdSpy = jest.spyOn(Utils, 'generateMsgId').mockReturnValue('generated-msgID');
-      await client.getTxnDetails({
-        msgID: 'provided-msgID',
-        partnerTxID,
-        currency: 'VND',
+  describe('cancel payment', () => {
+    it('should work in happy path', async () => {
+      await client.cancel({
+        transactionDetails: {
+          paymentChannel: 'CPQR',
+          originPartnerTxID: partnerTxID,
+          currency: 'VND',
+        },
       });
-      expect(generateMsgIdSpy).not.toHaveBeenCalled();
-      expect(axiosRequestSpy.mock.calls).toMatchSnapshot();
-    });
-  });
-
-  describe('getRefundDetails', () => {
-    it('use generated msgID', async () => {
-      const generateMsgIdSpy = jest.spyOn(Utils, 'generateMsgId').mockReturnValue('generated-msgID');
-      await client.getRefundDetails({ partnerTxID, currency: 'VND' });
-      expect(generateMsgIdSpy).toHaveBeenCalled();
-      expect(axiosRequestSpy.mock.calls).toMatchSnapshot();
-    });
-    it('use provided msgID', async () => {
-      const generateMsgIdSpy = jest.spyOn(Utils, 'generateMsgId').mockReturnValue('generated-msgID');
-      await client.getRefundDetails({
-        msgID: 'provided-msgID',
-        partnerTxID,
-        currency: 'VND',
-      });
-      expect(generateMsgIdSpy).not.toHaveBeenCalled();
       expect(axiosRequestSpy.mock.calls).toMatchSnapshot();
     });
   });

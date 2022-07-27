@@ -8,17 +8,17 @@ export type ApiUrlSet = {
   ONA_ONE_TIME_CHARGE_STATUS: string;
   ONA_REFUND: string;
   ONA_REFUND_STATUS: string;
-  POS_CANCEL_TRANSACTION: string;
-  POS_CREATE_QR_CODE: string;
-  POS_GET_TXN_DETAIL: string;
-  POS_PERFORM_TRANSACTION: string;
-  POS_REFUND_TRANSACTION: string;
+
+  POS_INITIATE: string;
+  POS_INQUIRE: string;
+  POS_REFUND: string;
+  POS_CANCEL: string;
 };
 
 const API_PATH_GRAB_ID_V1 = '/grabid/v1';
 const API_PATH_MOCA_PARTNER_V2 = '/mocapay/partner/v2';
-const API_PATH_MOCA_PARTNERS_V1 = '/mocapay/partners/v1';
-const API_PATH_REGIONAL_PARTNER_V1 = '/grabpay/partner/v1';
+const API_PATH_MOCA_PARTNERS_V3 = '/mocapay/partner/v3';
+const API_PATH_REGIONAL_PARTNER_V3 = '/grabpay/partner/v3';
 const API_PATH_REGIONAL_PARTNER_V2 = '/grabpay/partner/v2';
 
 const urlSets: Partial<Record<TCountry, ApiUrlSet>> = {
@@ -31,11 +31,10 @@ const urlSets: Partial<Record<TCountry, ApiUrlSet>> = {
     ONA_REFUND: `${API_PATH_MOCA_PARTNER_V2}/refund`,
     ONA_REFUND_STATUS: `${API_PATH_MOCA_PARTNER_V2}/refund/{partnerTxID}/status`,
 
-    POS_CANCEL_TRANSACTION: `${API_PATH_MOCA_PARTNERS_V1}/terminal/transaction/{origPartnerTxID}/cancel`,
-    POS_CREATE_QR_CODE: `${API_PATH_MOCA_PARTNERS_V1}/terminal/qrcode/create`,
-    POS_GET_TXN_DETAIL: `${API_PATH_MOCA_PARTNERS_V1}/terminal/transaction/{partnerTxID}`,
-    POS_PERFORM_TRANSACTION: `${API_PATH_MOCA_PARTNERS_V1}/terminal/transaction/perform`,
-    POS_REFUND_TRANSACTION: `${API_PATH_MOCA_PARTNERS_V1}/terminal/transaction/{origPartnerTxID}/refund`,
+    POS_INITIATE: `${API_PATH_MOCA_PARTNERS_V3}/payment/init`,
+    POS_INQUIRE: `${API_PATH_MOCA_PARTNERS_V3}/payment/inquiry`,
+    POS_REFUND: `${API_PATH_MOCA_PARTNERS_V3}/payment/refund`,
+    POS_CANCEL: `${API_PATH_MOCA_PARTNERS_V3}/payment/cancellation`,
   },
 };
 
@@ -48,11 +47,10 @@ const fallbackUrlSet: ApiUrlSet = {
   ONA_REFUND: `${API_PATH_REGIONAL_PARTNER_V2}/refund`,
   ONA_REFUND_STATUS: `${API_PATH_REGIONAL_PARTNER_V2}/refund/{partnerTxID}/status`,
 
-  POS_CANCEL_TRANSACTION: `${API_PATH_REGIONAL_PARTNER_V1}/terminal/transaction/{origPartnerTxID}/cancel`,
-  POS_CREATE_QR_CODE: `${API_PATH_REGIONAL_PARTNER_V1}/terminal/qrcode/create`,
-  POS_GET_TXN_DETAIL: `${API_PATH_REGIONAL_PARTNER_V1}/terminal/transaction/{partnerTxID}`,
-  POS_PERFORM_TRANSACTION: `${API_PATH_REGIONAL_PARTNER_V1}/terminal/transaction/perform`,
-  POS_REFUND_TRANSACTION: `${API_PATH_REGIONAL_PARTNER_V1}/terminal/transaction/{origPartnerTxID}/refund`,
+  POS_INITIATE: `${API_PATH_REGIONAL_PARTNER_V3}/payment/init`,
+  POS_INQUIRE: `${API_PATH_REGIONAL_PARTNER_V3}/payment/inquiry`,
+  POS_REFUND: `${API_PATH_REGIONAL_PARTNER_V3}/payment/refund`,
+  POS_CANCEL: `${API_PATH_REGIONAL_PARTNER_V3}/payment/cancellation`,
 };
 
 export function getUrls(country: TCountry) {
