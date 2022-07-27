@@ -2,90 +2,175 @@ import Requester, { IRequester } from './utils/Requester';
 import { initializeWithConfig, OfflineClientConfig } from './configs/Config';
 import { SDK_VERSION } from './configs/Version';
 import { OfflineClientRawConfig } from './configs/Config';
-import * as Utils from './utils/Utils';
 import { TCurrency } from './types';
 
-export type CreateQrCodeParams = {
-  msgID?: string;
-  partnerTxID: string;
-  amount: number;
-  currency: TCurrency;
-};
-
-export type CreateQrCodeResponse = {
-  msgID: string;
-  qrcode: string;
-  txID: string;
-};
-
-export type PerformQrCodeTxnParams = {
-  msgID?: string;
-  partnerTxID: string;
-  amount: number;
-  currency: TCurrency;
-  code: string;
-  additionalInfo?: 'amountBreakdown'[];
-};
-
-export type PerformQrCodeTxnResponse = {
-  msgID: string;
-  txID: string;
-  status: 'success' | 'failed' | 'unknown' | 'pending' | 'bad_debt';
-  currency: TCurrency;
-  amount: number;
-  updated: number;
-  errMsg: string;
-  additionalInfo?: {
-    amountBreakdown?: Record<string, number | string>;
+export type PosInitiateResponse = {
+  transactionDetails?: {
+    paymentChannel?: 'CPQR' | 'MPQR';
+    storeGrabID?: string;
+    grabTxID?: string;
+    partnerTxID?: string;
+    partnerGroupTxID?: string;
+    billRefNumber?: string;
+    amount?: number;
+    currency?: TCurrency;
+    paymentExpiryTime?: number;
+  };
+  POSDetails?: {
+    terminalID?: string;
+    qrPayload?: string;
+  };
+  statusDetails?: {
+    status: string;
+    statusCode: string;
+    statusReason: string;
   };
 };
 
-export type CancelTxnParams = {
-  msgID?: string;
-  partnerTxID: string;
-  origPartnerTxID: string;
-  origTxID: string;
-  currency: TCurrency;
-};
-
-export type CancelTxnResponse = {};
-
-export type RefundTxnParams = {
-  msgID?: string;
-  partnerTxID: string;
-  amount: number;
-  currency: TCurrency;
-  origPartnerTxID: string;
-  reason: string;
-};
-
-export type RefundTxnResponse = {
-  msgID: string;
-  txID: string;
-  originTxID: string;
-  status: 'success' | 'failed' | 'unknown' | 'pending' | 'bad_debt';
-  description: string;
-  additionalInfo?: {
-    amountBreakdown?: Record<string, number | string>;
+export type PosInitiateRequest = {
+  transactionDetails?: {
+    paymentChannel: 'CPQR' | 'MPQR';
+    partnerTxID: string;
+    partnerGroupTxID?: string;
+    billRefNumber?: string;
+    amount: number;
+    currency: TCurrency;
+    paymentExpiryTime: number;
+  };
+  paymentMethod?: {
+    paymentMethodExclusion?: ('POSTPAID' | 'INSTALMENT_4')[];
+    minAmtPostpaid?: number;
+    minAmt4Instalment?: number;
+  };
+  POSDetails?: {
+    consumerIdentifier?: string;
   };
 };
 
-export type GetTxnDetailsParams = {
-  msgID?: string;
-  partnerTxID: string;
-  currency: string;
+export type PosInquiryResponse = {
+  transactionDetails?: {
+    paymentChannel?: 'CPQR' | 'MPQR';
+    storeGrabID?: string;
+    txType?: 'PAYMENT' | 'REFUND';
+    grabTxID?: string;
+    partnerTxID?: string;
+    partnerGroupTxID?: string;
+    billRefNumber?: string;
+    amount?: number;
+    refundedAmount?: number;
+    currency?: TCurrency;
+    paymentMethod: 'GPWALLET' | 'POSTPAID' | 'INSTALMENT_4' | 'CARD' | 'PAYNOW' | 'DUITNOW' | 'QRPH';
+    updatedTime: number;
+    paymentExpiryTime?: number;
+  };
+  POSDetails?: {
+    terminalID?: string;
+  };
+  statusDetails?: {
+    status: string;
+    statusCode: string;
+    statusReason: string;
+  };
+  originTxDetails?: {
+    originGrabTxID?: string;
+    originPartnerTxID?: string;
+    originPartnerGroupTxID?: string;
+    originAmount?: number;
+  };
+  promoDetails?: {
+    promoCode?: string;
+    consumerPaidAmt?: number;
+    merchantFundedPromoAmt?: number;
+    pointsMultiplier?: string;
+    pointsAwarded?: number;
+    promoRefund?: {
+      consumerRefundedAmt?: number;
+      merchantFundedPromoRefundAmt?: number;
+      pointsRefunded?: number;
+    };
+  };
+  metadata?: {
+    offusTxID?: string;
+    originOffusTxID?: string;
+  };
 };
 
-export type GetTxnDetailsResponse = {
-  msgID: string;
-  txID: string;
-  status: 'success' | 'failed' | 'unknown' | 'pending' | 'bad_debt';
-  currency: TCurrency;
-  amount: number;
-  updated: number;
-  errMsg: string;
-  additionalInfo?: {
-    amountBreakdown?: Record<string, number | string>;
+export type PosInquiryRequest = {
+  transactionDetails?: {
+    paymentChannel: 'CPQR' | 'MPQR';
+    currency: TCurrency;
+    txType: 'PAYMENT' | 'REFUND';
+    txRefType: 'GRABTXID' | 'PARTNERTXID';
+    txID: string;
+  };
+};
+
+export type RefundPaymentResponse = {
+  transactionDetails?: {
+    paymentChannel?: 'CPQR' | 'MPQR';
+    storeGrabID?: string;
+    grabTxID?: string;
+    partnerTxID?: string;
+    partnerGroupTxID?: string;
+    amount?: number;
+    currency?: TCurrency;
+    paymentMethod: 'GPWALLET' | 'POSTPAID' | 'INSTALMENT_4' | 'CARD' | 'PAYNOW' | 'DUITNOW' | 'QRPH';
+    updatedTime: number;
+  };
+  originTxDetails?: {
+    originGrabTxID?: string;
+    originPartnerTxID?: string;
+    originPartnerGroupTxID?: string;
+    originAmount?: number;
+  };
+  promoRefundDetails?: {
+    consumerRefundedAmt?: number;
+    merchantFundedPromoRefundAmt?: number;
+    pointsRefunded?: number;
+  };
+  statusDetails?: {
+    status: string;
+    statusCode: string;
+    statusReason: string;
+  };
+  metadata?: {
+    offusTxID?: string;
+    originOffusTxID?: string;
+  };
+};
+
+export type PosRefundRequest = {
+  transactionDetails?: {
+    paymentChannel: 'CPQR' | 'MPQR';
+    originPartnerTxID: string;
+    partnerTxID: string;
+    partnerGroupTxID?: string;
+    billRefNumber?: string;
+    amount: number;
+    currency: TCurrency;
+    reason?: string;
+  };
+};
+
+export type PosCancelResponse = {
+  transactionDetails?: {
+    paymentChannel?: 'CPQR' | 'MPQR';
+    storeGrabID?: string;
+    originPartnerTxID?: string;
+    currency?: TCurrency;
+  };
+  statusDetails?: {
+    status: string;
+    statusCode: string;
+    statusReason: string;
+  };
+};
+
+export type PosCancelRequest = {
+  transactionDetails?: {
+    paymentChannel: 'CPQR' | 'MPQR';
+    originPartnerTxID: string;
+    currency: TCurrency;
   };
 };
 
@@ -102,96 +187,51 @@ export class MerchantIntegrationOffline {
   }
 
   /**
-   * Create QR Code
+   * Initiate a payment
+   * @param payload
+   * @returns
    */
-  createQrCode(payload: CreateQrCodeParams) {
-    const data = configurePayload(payload, this._config);
-    return this._requester.hmacRequest<CreateQrCodeResponse, typeof data>({
-      path: this._config.urlSet.POS_CREATE_QR_CODE,
+  initiate(payload: PosInitiateRequest) {
+    const data = configurePayloadTerminalId(configurePayloadStoreGrabId(payload, this._config), this._config);
+    return this._requester.hmacRequest<PosInitiateResponse, typeof data>({
+      path: this._config.urlSet.POS_INITIATE,
       method: 'POST',
       data,
     });
   }
 
-  /**
-   * Perform a Transaction
-   */
-  performQrCode(payload: PerformQrCodeTxnParams) {
-    const data = configurePayload(payload, this._config);
-    return this._requester.hmacRequest<PerformQrCodeTxnResponse, typeof data>({
-      path: this._config.urlSet.POS_PERFORM_TRANSACTION,
-      method: 'POST',
-      data,
+  inquiry(payload: PosInquiryRequest) {
+    const data = configurePayloadStoreGrabId(payload, this._config);
+    const query = flattenNestedMapForQuery(data);
+    return this._requester.hmacRequest<PosInquiryResponse, typeof data>({
+      path: this._config.urlSet.POS_INQUIRE,
+      method: 'GET',
+      query,
     });
   }
 
   /**
-   * Cancel a Transaction
+   * Cancel a payment
    */
-  cancel({ origPartnerTxID, ...payload }: CancelTxnParams) {
-    const data = configurePayload(payload, this._config);
-    const path = Utils.replaceUrl(this._config.urlSet.POS_CANCEL_TRANSACTION, {
-      origPartnerTxID,
-    });
-
-    return this._requester.hmacRequest<CancelTxnResponse, typeof data>({
-      path,
+  cancel(payload: PosCancelRequest) {
+    const data = configurePayloadStoreGrabId(payload, this._config);
+    return this._requester.hmacRequest<PosCancelResponse, typeof data>({
+      path: this._config.urlSet.POS_CANCEL,
       method: 'PUT',
       data,
     });
   }
 
   /**
-   * Refund a POS Payment
+   * Refund a payment
    */
-  refund({ origPartnerTxID, ...payload }: RefundTxnParams) {
-    const data = configurePayload(payload, this._config);
-    const path = Utils.replaceUrl(this._config.urlSet.POS_REFUND_TRANSACTION, {
-      origPartnerTxID,
-    });
+  refund(payload: PosRefundRequest) {
+    const data = configurePayloadStoreGrabId(payload, this._config);
 
-    return this._requester.hmacRequest<RefundTxnResponse, typeof data>({
-      path,
+    return this._requester.hmacRequest<PosRefundRequest, typeof data>({
+      path: this._config.urlSet.POS_REFUND,
       method: 'PUT',
       data,
-    });
-  }
-
-  /**
-   * Check Transaction Details
-   */
-  getTxnDetails({ partnerTxID, ...payload }: GetTxnDetailsParams) {
-    const configuredPayload = {
-      ...configurePayload(payload, this._config),
-      txType: 'P2M',
-    };
-    const path = Utils.replaceUrl(this._config.urlSet.POS_GET_TXN_DETAIL, {
-      partnerTxID,
-    });
-
-    return this._requester.hmacRequest<GetTxnDetailsResponse, never>({
-      path,
-      method: 'GET',
-      query: configuredPayload,
-    });
-  }
-
-  /**
-   * Check Refund Details
-   */
-  getRefundDetails({ partnerTxID, ...payload }: GetTxnDetailsParams) {
-    const configuredPayload = {
-      ...configurePayload(payload, this._config),
-      txType: 'Refund',
-    };
-    const path = Utils.replaceUrl(this._config.urlSet.POS_GET_TXN_DETAIL, {
-      partnerTxID,
-    });
-
-    return this._requester.hmacRequest<CancelTxnResponse, never>({
-      path,
-      method: 'GET',
-      query: configuredPayload,
     });
   }
 
@@ -205,13 +245,38 @@ export class MerchantIntegrationOffline {
   }
 }
 
-const configurePayload = <T extends unknown & { msgID?: string }>(
-  { msgID, ...payload }: T,
+const configurePayloadStoreGrabId = <T extends { transactionDetails?: {} }>(
+  payload: T,
   config: OfflineClientConfig,
 ) => ({
   ...payload,
-  // we use the provided msgID if mex provided one, otherwise we generate one for the request
-  msgID: msgID ? msgID : Utils.generateMsgId(),
-  grabID: config.merchantId,
-  terminalID: config.terminalId,
+  transactionDetails: {
+    ...payload.transactionDetails,
+    storeGrabID: config.merchantId,
+  },
 });
+
+const configurePayloadTerminalId = <T extends { POSDetails?: {} }>(payload: T, config: OfflineClientConfig) => ({
+  ...payload,
+  POSDetails: {
+    ...payload.POSDetails,
+    terminalID: config.terminalId,
+  },
+});
+
+const flattenNestedMapForQuery = <T>(obj: T) => {
+  if (typeof obj !== 'object' || obj === null) {
+    return obj;
+  }
+  return Object.entries(obj).reduce((acc, [property, value]) => {
+    const processedValue = flattenNestedMapForQuery(value);
+    if (typeof processedValue === 'object' && processedValue) {
+      Object.entries(processedValue).forEach(([innerKey, innerValue]) => {
+        acc[`${property}.${innerKey}`] = innerValue;
+      });
+    } else {
+      acc[property] = processedValue;
+    }
+    return acc;
+  }, {} as Record<string, any>);
+};
