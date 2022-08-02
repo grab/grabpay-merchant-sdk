@@ -52,7 +52,7 @@ func ProcessResponse(resp *http.Response, _dto interface{}) error {
 	defer resp.Body.Close()
 
 	statusCode := resp.StatusCode
-	if statusCode != 200 {
+	if statusCode >= 300 {
 		return errors.New(fmt.Sprintf("Httpcode : %d,\nDescription: %s", resp.StatusCode, string(bodyBytes)))
 	}
 

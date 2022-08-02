@@ -1,7 +1,14 @@
 // Package config provides constants and functions to get correct paths for APIs
 package config
 
-import "strings"
+import (
+	"errors"
+	"fmt"
+	"net/url"
+	"strings"
+
+	v3 "github.com/grab/grabpay-merchant-sdk/dto/v3"
+)
 
 const (
 	sdkSignature = "6EB66646DBF103DC114E34AE6E01C261A217A820357C3B08F3D4E7D4475853C7"
@@ -48,6 +55,12 @@ const (
 	globalPosCancelPath        = "/grabpay/partner/v1/terminal/transaction/{origPartnerTxID}/cancel"
 	globalPosRefundPath        = "/grabpay/partner/v1/terminal/transaction/{origPartnerTxID}/refund"
 	globalPosTxnDetailsPath    = "/grabpay/partner/v1/terminal/transaction/{partnerTxID}?currency={currency}&msgID={msgID}&txType={posTxType}&grabID={grabID}&terminalID={terminalID}"
+
+	// offline path v3
+	v3GlobalPOSInitPath    = "/grabpay/partner/v3/payment/init"
+	v3GlobalPOSInquirePath = "/grabpay/partner/v3/payment/inquiry"
+	v3GlobalPOSCancelPath  = "/grabpay/partner/v3/payment/cancellation"
+	v3GlobalPOSRefundPath  = "/grabpay/partner/v3/payment/refund"
 )
 
 const (
@@ -70,9 +83,15 @@ const (
 	EnvPRD = "PRD"
 	EnvSTG = "STG"
 
-	CountryGlobal = ""
+	CountryGlobal = "RG"
 	CountryVN     = "VN"
 	CountryMY     = "MY"
+	CountrySG     = "SG"
+	CountryTH     = "TH"
+)
+
+var (
+	ErrFailedParseUrl = errors.New("cannot parse url")
 )
 
 type ApiPath struct {
@@ -88,6 +107,11 @@ type ApiPath struct {
 	PosCancel          string
 	PosRefund          string
 	PosTxnDetails      string
+
+	POSInit    string
+	POSInquire string
+	POSCancel  string
+	POSRefund  string
 }
 
 func (a ApiPath) GetPosTxnDetails(msgID, grabID, terminalID, currency, txType, partnerTxID string, additionalInfo []string) string {
@@ -122,6 +146,40 @@ func (a ApiPath) GetOnaGetOTCStatus(partnerTxID, currency string) string {
 	path = strings.Replace(path, "{partnerTxID}", partnerTxID, -1)
 	path = strings.Replace(path, "{currency}", currency, -1)
 	return path
+}
+
+func (a ApiPath) GetPOSInquire(msgID string, params *v3.POSInquireQRPaymentParams) (string, error) {
+	path := a.POSInquire
+	relativeUrl, err := url.Parse(path)
+	if err != nil {
+		return "", ErrFailedParseUrl
+	}
+
+	transactionDetails := params.TransactionDetails
+
+	queryString := relativeUrl.Query()
+	queryString.Set("msgID", msgID)
+	if transactionDetails.PaymentChannel != "" {
+		queryString.Set("transactionDetails.paymentChannel", transactionDetails.PaymentChannel)
+	}
+	if transactionDetails.StoreGrabID != "" {
+		queryString.Set("transactionDetails.storeGrabID", transactionDetails.StoreGrabID)
+	}
+	if transactionDetails.Currency != "" {
+		queryString.Set("transactionDetails.currency", transactionDetails.Currency)
+	}
+	if transactionDetails.TxType != "" {
+		queryString.Set("transactionDetails.txType", transactionDetails.TxType)
+	}
+	if transactionDetails.TxRefType != "" {
+		queryString.Set("transactionDetails.txRefType", transactionDetails.TxRefType)
+	}
+	if transactionDetails.TxRefID != "" {
+		queryString.Set("transactionDetails.txRefID", transactionDetails.TxRefID)
+	}
+
+	relativeUrl.RawQuery = queryString.Encode()
+	return fmt.Sprintf("%s", relativeUrl.String()), nil
 }
 
 type Config struct {
@@ -202,5 +260,10 @@ func (config *Config) Init(env string, country string, partnerID string, partner
 		config.Path.PosCancel = globalPosCancelPath
 		config.Path.PosRefund = globalPosRefundPath
 		config.Path.PosTxnDetails = globalPosTxnDetailsPath
+
+		config.Path.POSInit = v3GlobalPOSInitPath
+		config.Path.POSInquire = v3GlobalPOSInquirePath
+		config.Path.POSCancel = v3GlobalPOSCancelPath
+		config.Path.POSRefund = v3GlobalPOSRefundPath
 	}
 }
