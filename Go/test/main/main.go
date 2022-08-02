@@ -11,6 +11,7 @@ import (
 
 	"github.com/grab/grabpay-merchant-sdk/config"
 	"github.com/grab/grabpay-merchant-sdk/dto"
+	v3 "github.com/grab/grabpay-merchant-sdk/dto/v3"
 	"github.com/grab/grabpay-merchant-sdk/merchant"
 	"github.com/grab/grabpay-merchant-sdk/utils"
 )
@@ -26,13 +27,20 @@ var (
 	VNRedirectUri   = "http://localhost:8888/result"
 
 	GlobalEnv           = config.EnvSTG
-	GlobalCountry       = config.CountryMY
+	GlobalCountry       = config.CountryGlobal
 	GlobalPartnerID     = os.Getenv("MY_STG_OTC_PARTNER_ID")
 	GlobalPartnerSecret = os.Getenv("MY_STG_OTC_PARTNER_SECRET")
 	GlobalMerchantID    = os.Getenv("MY_STG_OTC_MERCHANT_ID")
 	GlobalClientID      = os.Getenv("MY_STG_OTC_PARTNER_ID")
 	GlobalClientSecret  = os.Getenv("MY_STG_OTC_PARTNER_SECRET")
 	GlobalRedirectUri   = "http://localhost:8888/result"
+
+	SGEnv           = config.EnvSTG
+	SGCountry       = config.CountrySG
+	SGPartnerID     = os.Getenv("SG_STG_POS_PARTNER_ID")
+	SGPartnerSecret = os.Getenv("SG_STG_POS_PARTNER_SECRET")
+	SGMerchantID    = os.Getenv("SG_STG_POS_MERCHANT_ID")
+	SGTerminalId    = os.Getenv("SG_STG_POS_TERMINAL_ID")
 )
 
 func flow(merchant merchant.OnlineTransaction, methods []string, currency string) {
@@ -186,18 +194,120 @@ func flowVN() {
 	flow(merchant, nil, "VND")
 }
 
+func PosV3Flow() {
+	merchant1 := merchant.NewMerchantOfflineV3(SGEnv, SGCountry, SGPartnerID, SGPartnerSecret, SGMerchantID, SGTerminalId)
+	partner_tx_id := utils.GenerateRandomString(32)
+	time := time.Now().Add(time.Minute * 10).Unix()
+	fmt.Println(time)
+	posInitParam := &v3.POSInitQRPaymentParams{
+		POSDetails: &v3.POSDetailsRequest{
+			TerminalID: SGTerminalId,
+		},
+		TransactionDetails: &v3.POSInitTransactionDetails{
+			PaymentChannel:    "MPQR",
+			StoreGrabID:       SGMerchantID,
+			GrabTxID:          partner_tx_id,
+			PartnerTxID:       partner_tx_id,
+			PartnerGroupTxID:  partner_tx_id,
+			Amount:            int64(500),
+			Currency:          "SGD",
+			PaymentExpiryTime: time,
+		},
+	}
+	resp, err := merchant1.POSInitiate(nil, posInitParam)
+	if err != nil {
+		panic(err)
+	}
+	initResponse := &v3.POSInitQRPaymentResponse{}
+	err = merchant.ProcessResponse(resp, initResponse)
+	//if err != nil {
+	//	panic(err)
+	//}
+	jsonString, err := json.Marshal(initResponse)
+	fmt.Println(string(jsonString))
+
+	inquireParam := &v3.POSInquireQRPaymentParams{
+		TransactionDetails: &v3.POSInquireTransactionDetails{
+			Currency:       "SGD",
+			PaymentChannel: "MPQR",
+			TxType:         "PAYMENT",
+			TxRefType:      "PARTNERTXID",
+			TxRefID:        partner_tx_id,
+			StoreGrabID:    SGMerchantID,
+		},
+	}
+	inquireResp, err := merchant1.POSInquire(nil, inquireParam)
+	if err != nil {
+		panic(err)
+	}
+	inquireResponse := &v3.POSInquireQRPaymentResponse{}
+	err = merchant.ProcessResponse(inquireResp, inquireResponse)
+	if err != nil {
+		panic(err)
+	}
+	jsonString, err = json.Marshal(inquireResponse)
+	fmt.Println(string(jsonString))
+
+	var paid = 0
+	fmt.Println("Do you paid?")
+	fmt.Println("1. Yes - continue refunding")
+	fmt.Println("2. No - continue canceling")
+	fmt.Scanln(&paid)
+	if paid == 1 {
+		refundParam := &v3.POSRefundQRPaymentParams{
+			TransactionDetails: &v3.POSRefundTransactionDetails{
+				Amount:            posInitParam.TransactionDetails.Amount,
+				PaymentChannel:    posInitParam.TransactionDetails.PaymentChannel,
+				StoreGrabID:       SGMerchantID,
+				OriginPartnerTxID: partner_tx_id,
+				PartnerTxID:       partner_tx_id,
+				PartnerGroupTxID:  partner_tx_id,
+				Currency:          posInitParam.TransactionDetails.Currency,
+				Reason:            "buy-something-else",
+			},
+		}
+		refundResp, _ := merchant1.POSRefund(nil, refundParam)
+
+		refundResponse := &v3.POSRefundQRPaymentResponse{}
+		error1 := merchant.ProcessResponse(refundResp, refundResponse)
+		if error1 != nil {
+			panic(error1)
+		}
+		jsonString, err = json.Marshal(refundResponse)
+		fmt.Println(string(jsonString))
+	} else {
+		cancelParam := &v3.POSCancelQRPaymentParams{
+			TransactionDetails: &v3.POSCancelTransactionDetails{
+				PaymentChannel:    posInitParam.TransactionDetails.PaymentChannel,
+				StoreGrabID:       SGMerchantID,
+				OriginPartnerTxID: partner_tx_id,
+				Currency:          posInitParam.TransactionDetails.Currency,
+			},
+		}
+		cancelResp, _ := merchant1.POSCancel(nil, cancelParam)
+
+		cancelResponse := &v3.POSCancelQRPaymentResponse{}
+		error1 := merchant.ProcessResponse(cancelResp, cancelResponse)
+		if error1 != nil {
+			panic(error1)
+		}
+		jsonString, err = json.Marshal(cancelResponse)
+		fmt.Println(string(jsonString))
+	}
+}
 func main() {
 	fmt.Println("Choose which flow you want to test:")
 	fmt.Println("1. VN")
 	fmt.Println("2. Regional")
+	fmt.Println("3. POS v3")
 	var flow int = 0
 	fmt.Scanln(&flow)
 	if flow == 1 {
 		flowVN()
 	} else if flow == 2 {
 		flowRegional()
-	} else {
-		fmt.Println("Please re-run and choose 1/2")
+	} else if flow == 3 {
+		PosV3Flow()
 	}
 }
 

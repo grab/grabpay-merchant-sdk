@@ -36,6 +36,10 @@ func Test_Init(t *testing.T) {
 		PosCancel:          globalPosCancelPath,
 		PosRefund:          globalPosRefundPath,
 		PosTxnDetails:      globalPosTxnDetailsPath,
+		POSInit:            v3GlobalPOSInitPath,
+		POSRefund:          v3GlobalPOSRefundPath,
+		POSCancel:          v3GlobalPOSCancelPath,
+		POSInquire:         v3GlobalPOSInquirePath,
 	}
 
 	vnPaths := ApiPath{
