@@ -120,3 +120,5 @@ class MerchantIntegrationOffline:
             )
         except OSError as err:
             print("Something else went wrong with message:{0}".format(err))
+
+    

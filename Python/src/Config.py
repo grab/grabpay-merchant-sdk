@@ -97,6 +97,19 @@ class Config:
             )
             self.pathPosTxnDetails = "/grabpay/partner/v1/terminal/transaction/{partnerTxID}?currency={currency}&msgID={msgID}&txType={posTxType}"
 
+            self.pathPosInitiateV3 = (
+                "/grabpay/partner/v3/payment/init"
+            )
+            self.pathPosInquireV3 = (
+                "/grabpay/partner/v3/payment/inquiry"
+            )
+            self.pathPosCancelV3 = (
+                "/grabpay/partner/v3/payment/cancellation"
+            )
+            self.pathPosRefundV3 = (
+                "/grabpay/partner/v3/payment/refund"
+            )
+
     def getConfig(self):
         config = {
             "environment": self.environment,
@@ -121,8 +134,12 @@ class Config:
             "pathPosCreateQRCode": self.pathPosCreateQRCode,
             "pathPosPerformQRCode": self.pathPosPerformQRCode,
             "pathPosCancel": self.pathPosCancel,
-            "pathPosRefund,           ": self.pathPosRefund,
+            "pathPosRefund": self.pathPosRefund,
             "pathPosTxnDetails": self.pathPosTxnDetails,
+            "pathPosInitiateV3" : self.pathPosInitiateV3,
+            "pathPosInquireV3": self.pathPosInquireV3,
+            "pathPosCancelV3": self.pathPosCancelV3,
+            "pathPosRefundV3": self.pathPosRefundV3,
         }
 
         return config
