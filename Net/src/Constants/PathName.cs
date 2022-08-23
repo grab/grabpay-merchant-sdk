@@ -15,5 +15,9 @@ namespace Net.Public
         public const string PosRefundTxn = "PosRefundTxn";
         public const string PerformTxn = "PerformTxn";
         public const string PosChargeStatus = "PosChargeStatus";
+        public const string V3PosPaymentInit = "V3PosPaymentInit";
+        public const string V3PosPaymentInquiry = "V3PosPaymentInquiry";
+        public const string V3PosCancel = "V3PosCancel";
+        public const string V3PosRefund = "V3PosRefund";
     }
 }

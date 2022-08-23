@@ -49,13 +49,18 @@ namespace Net.Public
             this.PathDictionary = ChoosePath(country);
         }
 
-        public Uri BuildUri(string pathName, object[] args = null)
+        public Uri BuildUri(string pathName, object[] args = null, string parameters = "")
         {
+
+            string path = this.PathDictionary[pathName] + parameters;
+
             if (args != null)
             {
-                return new Uri(this.Domain + string.Format(this.PathDictionary[pathName], args));
+                return new Uri(this.Domain + string.Format(path, args));
             }
-            return new Uri(this.Domain + this.PathDictionary[pathName]);
+
+    
+            return new Uri(this.Domain + path);
         }
 
         private Dictionary<string, string> ChoosePath(string country)
@@ -63,7 +68,7 @@ namespace Net.Public
             var result = new Dictionary<string, string>();
             if (country.ToUpper() == "VN")
             {
-                
+
                 // online path
                 result.Add(PathName.ChargeInit, "/mocapay/partner/v2/charge/init");
                 result.Add(PathName.OAuth2Token, "/grabid/v1/oauth2/token");
@@ -95,6 +100,12 @@ namespace Net.Public
                 result.Add(PathName.PosRefundTxn, "/grabpay/partner/v1/terminal/transaction/{0}/refund");
                 result.Add(PathName.PerformTxn, "/grabpay/partner/v1/terminal/transaction/perform");
                 result.Add(PathName.PosChargeStatus, "/grabpay/partner/v1/terminal/transaction/{0}?msgID={1}&currency={2}&txType=P2M&grabID={3}&terminalID={4}");
+
+                // offline v3 path
+                result.Add(PathName.V3PosPaymentInit, "/grabpay/partner/v3/payment/init");
+                result.Add(PathName.V3PosPaymentInquiry, "/grabpay/partner/v3/payment/inquiry");
+                result.Add(PathName.V3PosCancel, "/grabpay/partner/v3/payment/cancellation");
+                result.Add(PathName.V3PosRefund, "/grabpay/partner/v3/payment/refund");
             }
 
             return result;
