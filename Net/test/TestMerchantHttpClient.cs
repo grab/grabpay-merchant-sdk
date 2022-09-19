@@ -11,7 +11,7 @@ namespace NetTest
     {
 
         MerchantConfiguration MocaConfiguration;
-        MerchantHttpClient  HttpClient;
+        MerchantHttpClient HttpClient;
         public TestMerchantHttpClient()
         {
             var partnerId = "partner-id";
@@ -25,7 +25,6 @@ namespace NetTest
 
             this.MocaConfiguration = new MerchantConfiguration(partnerId, partnerSecret, merchantId, clientId, clientSecret, "", redirectUrl, env, country);
             this.HttpClient = new MerchantHttpClient(this.MocaConfiguration);
-
         }
 
         [Fact]
@@ -47,7 +46,7 @@ namespace NetTest
             HttpContent content = CreateStringContent(JsonConvert.SerializeObject(requestBody));
 
             DateTime myDate = new DateTime(2018, 8, 18, 7, 22, 16);
-            MerchantRequest request = new MerchantRequest(uri, HttpMethod.Post, content, pathName: PathName.ChargeInit,date:myDate);
+            MerchantRequest request = new MerchantRequest(uri, HttpMethod.Post, content, pathName: PathName.ChargeInit, date: myDate);
 
             var result = HttpClient.GenerateHmacSignature(request);
             var expected = "Q0NTYdEq5Z+W0DMAOQBtk+6wwa76o/jg56UK90Eh/AQ=";
@@ -60,7 +59,32 @@ namespace NetTest
             string expected = "8ayXAutfryPKKRpNxG3t3u4qeMza8KQSvtdxTP/7HMQ=";
             var result = HttpClient.HMACSHA256Sign("hello", "world");
             Assert.Equal(expected, Convert.ToBase64String(result));
-            
+        }
+
+        [Fact]
+        public void TestBuildRequestMessage()
+        {
+            var requestBody = new
+            {
+                partnerTxID = "2342sahu358dsk34234sfsfd"
+            };
+            Uri uri = MocaConfiguration.BuildUri(PathName.ChargeInit);
+            HttpContent content = CreateStringContent(JsonConvert.SerializeObject(requestBody));
+
+            DateTime myDate = new DateTime(2018, 8, 18, 7, 22, 16);
+            MerchantRequest request = new MerchantRequest(uri, HttpMethod.Post, null, pathName: PathName.ChargeInit, date: myDate);
+
+            var requestMessage = this.HttpClient.BuildRequestMessage(request);
+            Assert.Contains("Authorization", requestMessage.Headers.ToString());
+
+            uri = MocaConfiguration.BuildUri(PathName.ChargeComplete);
+            content = CreateStringContent(JsonConvert.SerializeObject(requestBody));
+
+            myDate = new DateTime(2018, 8, 18, 7, 22, 16);
+            request = new MerchantRequest(uri, HttpMethod.Post, content, pathName: PathName.ChargeComplete, date: myDate);
+            requestMessage = this.HttpClient.BuildRequestMessage(request);
+            Assert.Contains("X-GID-AUX-POP", requestMessage.Headers.ToString());
+
         }
 
         private StringContent CreateStringContent(string json)

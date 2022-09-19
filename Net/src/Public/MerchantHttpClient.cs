@@ -43,7 +43,11 @@ namespace Net.Public
                 || request.PathName == PathName.CancelQrTxn
                 || request.PathName == PathName.PosRefundTxn
                 || request.PathName == PathName.PosChargeStatus
-                || request.PathName == PathName.PosRefundTxn)
+                || request.PathName == PathName.PosRefundTxn
+                || request.PathName == PathName.V3PosPaymentInit
+                || request.PathName == PathName.V3PosCancel
+                || request.PathName == PathName.V3PosRefund
+                || request.PathName == PathName.V3PosPaymentInquiry)
             {
                 var authorizationHeader = string.Format("{0}:{1}", MerchantConfiguration.PartnerId, GenerateHmacSignature(request));
                 requestMessage.Headers.TryAddWithoutValidation("Authorization", authorizationHeader);
@@ -55,7 +59,7 @@ namespace Net.Public
             {
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", request.AccessToken);
                 requestMessage.Headers.Add("X-GID-AUX-POP", GeneratePOPSignature(request.AccessToken, ((DateTimeOffset)request.Date).ToUnixTimeSeconds()));
-            } 
+            }
 
             // CONTENTS
             requestMessage.Content = request.Content;

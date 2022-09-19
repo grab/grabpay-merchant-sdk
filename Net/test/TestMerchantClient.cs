@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using Moq;
 using System.Net.Http;
 using System.Text;
+using System.Collections.Generic;
 
 namespace NetTest
 {
@@ -14,6 +15,8 @@ namespace NetTest
         private Random random = new Random();
         MerchantIntegrationOnline MerchantClientOnline;
         MerchantIntegrationOffline MerchantClientOffline;
+        MerchantIntegrationOfflineV3 MerchantClientOfflineV3;
+
         private string partnerId = "partnerId";
         private string partnerSecret = "partnerSecret";
         private string merchantId = "merchantId";
@@ -27,6 +30,17 @@ namespace NetTest
         public TestMerchantClient()
         {
             MerchantClientOnline = new MerchantIntegrationOnline(env, country, partnerId, partnerSecret, merchantId, clientId, clientSecret, redirectUrl);
+        }
+
+        [Fact]
+        public void TestConstrutor()
+        {
+            var merchantOnline = new MerchantIntegrationOnline(env, country, partnerId, partnerSecret, merchantId, clientId, clientSecret, redirectUrl);
+            Assert.NotNull(merchantOnline);
+            var merchantOffline = new MerchantIntegrationOffline(env, country, partnerId, partnerSecret, merchantId, terminalId);
+            Assert.NotNull(merchantOffline);
+            var merchantOfflineV3 = new MerchantIntegrationOfflineV3(env, "SG", partnerId, partnerSecret, merchantId, terminalId);
+            Assert.NotNull(merchantOfflineV3);
         }
 
         [Fact]
@@ -69,9 +83,9 @@ namespace NetTest
             httpClientMock.Setup(p => p.SendRequest(It.IsAny<MerchantRequest>())).Returns(responseMessage);
 
             MerchantClientOnline = new MerchantIntegrationOnline(env, country, partnerId, partnerSecret, merchantId, clientId, clientSecret, redirectUrl, httpClientMock.Object);
-            
+
             string[] arr = { "INSTALMENT" };
-            var response = this.MerchantClientOnline.OnaChargeInit(partnerTxId, RandomString(32), 2000, "VND",hidePaymentMethods: arr);
+            var response = this.MerchantClientOnline.OnaChargeInit(partnerTxId, RandomString(32), 2000, "VND", hidePaymentMethods: arr);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
@@ -85,7 +99,8 @@ namespace NetTest
         {
             var httpClientMock = new Mock<IHttpClient>();
             HttpResponseMessage responseMessage = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
-            var responseBody = new {
+            var responseBody = new
+            {
                 request = "request"
             };
             responseMessage.Content = CreateStringContent(JsonConvert.SerializeObject(responseBody));
@@ -93,7 +108,7 @@ namespace NetTest
 
             MerchantClientOnline = new MerchantIntegrationOnline(env, country, partnerId, partnerSecret, merchantId, clientId, clientSecret, redirectUrl, httpClientMock.Object);
             var partnerTxId = RandomString(32);
-            var response = this.MerchantClientOnline.OnaCreateWebUrl(partnerTxId, RandomString(32), 2000, "VND", "codeVerifier", null, null, null, null,null, RandomString(7));
+            var response = this.MerchantClientOnline.OnaCreateWebUrl(partnerTxId, RandomString(32), 2000, "VND", "codeVerifier", null, null, null, null, null, RandomString(7));
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
@@ -159,7 +174,7 @@ namespace NetTest
             httpClientMock.Setup(p => p.SendRequest(It.IsAny<MerchantRequest>())).Returns(responseMessage);
 
             MerchantClientOnline = new MerchantIntegrationOnline(env, country, partnerId, partnerSecret, merchantId, clientId, clientSecret, redirectUrl, httpClientMock.Object);
-            var response = this.MerchantClientOnline.OnaRefund(RandomString(32), RandomString(32), 2000, "VND", RandomString(32),"description", "accessToken");
+            var response = this.MerchantClientOnline.OnaRefund(RandomString(32), RandomString(32), 2000, "VND", RandomString(32), "description", "accessToken");
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
         }
 
@@ -183,7 +198,7 @@ namespace NetTest
             httpClientMock.Setup(p => p.SendRequest(It.IsAny<MerchantRequest>())).Returns(responseMessage);
 
             MerchantClientOffline = new MerchantIntegrationOffline(env, country, partnerId, partnerSecret, merchantId, terminalId, httpClientMock.Object);
-            
+
             var response = this.MerchantClientOffline.PosCreateQRCode(RandomString(32), RandomString(32), 2000, "VND");
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
         }
@@ -196,7 +211,7 @@ namespace NetTest
             httpClientMock.Setup(p => p.SendRequest(It.IsAny<MerchantRequest>())).Returns(responseMessage);
 
             MerchantClientOffline = new MerchantIntegrationOffline(env, country, partnerId, partnerSecret, merchantId, terminalId, httpClientMock.Object);
-            var response = this.MerchantClientOffline.PosPerformQRCode(RandomString(32), RandomString(32), 2000, "VND","code");
+            var response = this.MerchantClientOffline.PosPerformQRCode(RandomString(32), RandomString(32), 2000, "VND", "code");
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
         }
 
@@ -220,7 +235,7 @@ namespace NetTest
             httpClientMock.Setup(p => p.SendRequest(It.IsAny<MerchantRequest>())).Returns(responseMessage);
 
             MerchantClientOffline = new MerchantIntegrationOffline(env, country, partnerId, partnerSecret, merchantId, terminalId, httpClientMock.Object);
-            var response = this.MerchantClientOffline.PosRefund(RandomString(32), 2000,"VND", RandomString(32), "reason");
+            var response = this.MerchantClientOffline.PosRefund(RandomString(32), 2000, "VND", RandomString(32), "reason");
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
         }
 
@@ -245,6 +260,86 @@ namespace NetTest
 
             MerchantClientOffline = new MerchantIntegrationOffline(env, country, partnerId, partnerSecret, merchantId, terminalId, httpClientMock.Object);
             var response = this.MerchantClientOffline.PosGetRefundDetails(RandomString(32), RandomString(32), "VND");
+            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public void TestPosInitateV3()
+        {
+            var httpClientMock = new Mock<IHttpClient>();
+            HttpResponseMessage responseMessage = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
+            httpClientMock.Setup(p => p.SendRequest(It.IsAny<MerchantRequest>())).Returns(responseMessage);
+
+            var transactionDetails = new Dictionary<string, dynamic>();
+            transactionDetails.Add("paymentChannel", "MPQR");
+            transactionDetails.Add("storeGrabID", merchantId);
+            transactionDetails.Add("partnerTxID", RandomString(32));
+            transactionDetails.Add("partnerGroupTxID", RandomString(32));
+            transactionDetails.Add("amount", 500);
+            transactionDetails.Add("currency", "SGD");
+            transactionDetails.Add("paymentExpiryTime", DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 600);
+            var POSDetails = new Dictionary<string, dynamic>();
+            POSDetails.Add("terminalID", terminalId);
+            MerchantClientOfflineV3 = new MerchantIntegrationOfflineV3(env, "SG", partnerId, partnerSecret, merchantId, terminalId, httpClientMock.Object);
+
+            var response = this.MerchantClientOfflineV3.PosInitate(transactionDetails, null, POSDetails);
+            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public void TestPosInquireV3()
+        {
+            var httpClientMock = new Mock<IHttpClient>();
+            HttpResponseMessage responseMessage = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
+            httpClientMock.Setup(p => p.SendRequest(It.IsAny<MerchantRequest>())).Returns(responseMessage);
+
+            var transactionDetails = new Dictionary<string, dynamic>();
+            transactionDetails.Add("paymentChannel", "MPQR");
+            transactionDetails.Add("storeGrabID", merchantId);
+            transactionDetails.Add("currency", "SGD");
+            transactionDetails.Add("txType", "PAYMENT");
+            transactionDetails.Add("txRefType", "PARTNERTXID");
+            transactionDetails.Add("txRefID", "abcd");
+            MerchantClientOfflineV3 = new MerchantIntegrationOfflineV3(env, "SG", partnerId, partnerSecret, merchantId, terminalId, httpClientMock.Object);
+
+            var response = this.MerchantClientOfflineV3.PosInquire(transactionDetails);
+            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public void TestPosCancelV3()
+        {
+            var httpClientMock = new Mock<IHttpClient>();
+            HttpResponseMessage responseMessage = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
+            httpClientMock.Setup(p => p.SendRequest(It.IsAny<MerchantRequest>())).Returns(responseMessage);
+            var transactionDetails = new Dictionary<string, dynamic>();
+            transactionDetails.Add("paymentChannel", "MPQR");
+            transactionDetails.Add("storeGrabID", merchantId);
+            transactionDetails.Add("originPartnerTxID", RandomString(32));
+            transactionDetails.Add("currency", "SGD");
+            MerchantClientOfflineV3 = new MerchantIntegrationOfflineV3(env, "SG", partnerId, partnerSecret, merchantId, terminalId, httpClientMock.Object);
+
+            var response = this.MerchantClientOfflineV3.PosCancel(transactionDetails);
+            Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public void TestPosRefundV3()
+        {
+            var httpClientMock = new Mock<IHttpClient>();
+            HttpResponseMessage responseMessage = new HttpResponseMessage(System.Net.HttpStatusCode.OK);
+            httpClientMock.Setup(p => p.SendRequest(It.IsAny<MerchantRequest>())).Returns(responseMessage);
+            var transactionDetails = new Dictionary<string, dynamic>();
+            transactionDetails.Add("paymentChannel", "MPQR");
+            transactionDetails.Add("storeGrabID", merchantId);
+            transactionDetails.Add("originPartnerTxID", RandomString(32));
+            transactionDetails.Add("partnerTxID", RandomString(32));
+            transactionDetails.Add("partnerGroupTxID", RandomString(32));
+            transactionDetails.Add("amount", 100);
+            transactionDetails.Add("currency", "SGD");
+            MerchantClientOfflineV3 = new MerchantIntegrationOfflineV3(env, "SG", partnerId, partnerSecret, merchantId, terminalId, httpClientMock.Object);
+
+            var response = this.MerchantClientOfflineV3.PosRefund(transactionDetails);
             Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
         }
 

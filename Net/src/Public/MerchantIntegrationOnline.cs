@@ -252,7 +252,8 @@ namespace Net.Public
         {
             object[] requestParams = { partnerTxId, currency };
             var uri = MerchantConfiguration.BuildUri(PathName.OneTimeChargeStatus, requestParams);
-            var request = new MerchantRequest(uri, HttpMethod.Get, pathName: PathName.OneTimeChargeStatus);
+            var content = CreateStringContent("");
+            var request = new MerchantRequest(uri, HttpMethod.Get, content, pathName: PathName.OneTimeChargeStatus);
             return HttpClient.SendRequest(request);
         }
 
