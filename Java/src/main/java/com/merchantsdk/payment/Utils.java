@@ -23,7 +23,7 @@ import com.merchantsdk.payment.exception.SDKRuntimeException;
 public class Utils {
     /**
      * Hash a string using MD5 algorithm and retuen Hex encode of MD5 string
-     * 
+     * dddddddd
      * @param msg the data need to be hashed
      * @return String
      * @throws SDKRuntimeException
